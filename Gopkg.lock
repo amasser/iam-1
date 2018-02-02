@@ -10,8 +10,11 @@
 [[projects]]
   branch = "master"
   name = "github.com/maurofran/kit"
-  packages = ["assert"]
-  revision = "c2bdbbb728f6c64a2c60ddcefd0044117d2df3cc"
+  packages = [
+    "assert",
+    "domain"
+  ]
+  revision = "b6d701ec0d72656a35f5da9f33fea09974b775f0"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -31,9 +34,18 @@
   ]
   revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 
+[[projects]]
+  name = "upper.io/db.v3"
+  packages = [
+    ".",
+    "internal/immutable"
+  ]
+  revision = "7c550bc7b8b2915197ae407336e1fe2a6504222d"
+  version = "v3.5.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "582e366bf49fb9b89abb634b390daf404e8a48bff26597a32a0ebbbb80bf4014"
+  inputs-digest = "6f681aebbae87b7025f3f2a6cc1a2bfd94ac6b11041bb68bbeecc69f4126daa0"
   solver-name = "gps-cdcl"
   solver-version = 1

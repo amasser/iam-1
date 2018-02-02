@@ -9,10 +9,10 @@ import (
 
 // Invitation is the entity object used to supply an invitation to a tenant.
 type Invitation struct {
-	InvitationID string
-	Description  string
-	StartingOn   time.Time
-	Until        time.Time
+	InvitationID string    `bson:"invitationId"`
+	Description  string    `bson:"description"`
+	StartingOn   time.Time `bson:"startingOn,omitempty"`
+	Until        time.Time `bson:"until,omitempty"`
 }
 
 // newInvitation is used to create a new Invitation object.

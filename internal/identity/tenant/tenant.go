@@ -8,12 +8,12 @@ import (
 
 // Tenant is the aggregate root object used to manage a tenant.
 type Tenant struct {
-	*domain.AggregateRoot
-	ID          ID
-	Name        string
-	Description string
-	Active      bool
-	Invitations []*Invitation
+	*domain.AggregateRoot `bson:"-"`
+	ID                    ID            `bson:"_id"`
+	Name                  string        `bson:"name"`
+	Description           string        `bson:"description"`
+	Active                bool          `bson:"active"`
+	Invitations           []*Invitation `bson:"invitations"`
 }
 
 // New is used to create a new tenant instance.
