@@ -9,7 +9,7 @@ import (
 // Tenant is the aggregate root object used to manage a tenant.
 type Tenant struct {
 	*domain.AggregateRoot `bson:"-"`
-	ID                    ID            `bson:"_id"`
+	ID                    ID            `bson:"tenantId"`
 	Name                  string        `bson:"name"`
 	Description           string        `bson:"description"`
 	Active                bool          `bson:"active"`
