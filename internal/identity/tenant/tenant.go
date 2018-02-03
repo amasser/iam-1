@@ -13,7 +13,7 @@ type Tenant struct {
 	Name                  string        `bson:"name"`
 	Description           string        `bson:"description"`
 	Active                bool          `bson:"active"`
-	Invitations           []*Invitation `bson:"invitations"`
+	Invitations           []*Invitation `bson:"invitations,omitempty"`
 }
 
 // New is used to create a new tenant instance.

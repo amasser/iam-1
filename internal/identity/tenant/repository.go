@@ -1,6 +1,9 @@
 package tenant
 
-import db "upper.io/db.v3"
+import (
+	"github.com/pkg/errors"
+	db "upper.io/db.v3"
+)
 
 const collectionName = "tenants"
 
@@ -23,21 +26,45 @@ type repository struct {
 }
 
 func (r *repository) Add(tenant *Tenant) error {
-	panic("Not implemented")
+	_, err := r.c.Insert(tenant)
+	if err != nil {
+		return errors.Wrapf(err, "Error occurred while inserting tenant %v", tenant)
+	}
+	return nil
 }
 
 func (r *repository) Update(tenant *Tenant) error {
-	panic("Not implemented")
+	res := r.c.Find("tenantId", tenant.ID.Value())
+	err := res.Update(tenant)
+	if err != nil {
+		return errors.Wrapf(err, "Error occurred while updating tenant %v", tenant)
+	}
+	return nil
 }
 
 func (r *repository) Remove(tenant *Tenant) error {
-	panic("Not implemented")
+	res := r.c.Find("tenantId", tenant.ID.Value())
+	err := res.Delete()
+	if err != nil {
+		return errors.Wrapf(err, "Error occurred while removing tenant %v", tenant)
+	}
+	return nil
 }
 
 func (r *repository) FindByID(id ID) (*Tenant, error) {
-	panic("Not implemented")
+	res := r.c.Find("tenantId", id)
+	var tenant Tenant
+	if err := res.One(&tenant); err != nil {
+		return nil, errors.Wrapf(err, "Error occurred while retrieving tenant for id %v", id)
+	}
+	return &tenant, nil
 }
 
 func (r *repository) FindByName(name string) (*Tenant, error) {
-	panic("Not implemented")
+	res := r.c.Find("name", name)
+	tenant := new(Tenant)
+	if err := res.One(tenant); err != nil {
+		return nil, errors.Wrapf(err, "Error occurred while retrieving tenant for name '%s'", name)
+	}
+	return tenant, nil
 }
