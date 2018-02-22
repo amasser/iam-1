@@ -93,7 +93,9 @@ func (u *User) Enabled() bool {
 	return u.Enablement.ActuallyEnabled()
 }
 
-// TODO toGroupMember
+func (u *User) toGroupMember() GroupMember {
+	return GroupMember{MemberTypeUser, u.Username}
+}
 
 func (u *User) protectPassword(currentPassword, newPassword string) error {
 	if err := assert.NotEquals(currentPassword, newPassword, "currentPassword"); err != nil {
