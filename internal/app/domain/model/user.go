@@ -1,6 +1,10 @@
 package model
 
 import (
+	"time"
+
+	"github.com/maurofran/iam/internal/app/domain/model/event"
+	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/iam/internal/pkg/password"
 	"github.com/maurofran/kit/assert"
 )
@@ -21,6 +25,7 @@ type UserRepository interface {
 
 // User is the aggregate root used to provide a user.
 type User struct {
+	aggregate.Root
 	TenantID   TenantID
 	Username   string
 	Password   string
@@ -44,10 +49,21 @@ func newUser(tenantID TenantID, username, password string, enablement Enablement
 	if err := assert.NotNil(person, "person"); err != nil {
 		return nil, err
 	}
-	user := &User{tenantID, username, "", enablement, person}
+	user := &User{TenantID: tenantID, Username: username, Enablement: enablement, Person: person}
 	if err := user.protectPassword("", password); err != nil {
 		return nil, err
 	}
+	user.RegisterEvent(&event.UserRegistered{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(tenantID),
+		Username:     username,
+		EmailAddress: string(person.ContactInformation.EmailAddress),
+		FullName: &event.FullName{
+			FirstName: person.Name.FirstName,
+			LastName:  person.Name.LastName,
+		},
+	})
 	// TODO Raise event
 	return user, nil
 }
@@ -64,27 +80,79 @@ func (u *User) ChangePassword(currentPassword, newPassword string) error {
 	if err := assert.Condition(u.Password == encrypted, "currentPassword not confirmed"); err != nil {
 		return err
 	}
-	return u.protectPassword(currentPassword, newPassword)
+	if err := u.protectPassword(currentPassword, newPassword); err != nil {
+		return err
+	}
+	u.RegisterEvent(&event.UserPasswordChanged{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(u.TenantID),
+		Username:     u.Username,
+	})
+	return nil
 }
 
 // ChangePersonalContactInformation will change the personal contact information.
 func (u *User) ChangePersonalContactInformation(contactInformation ContactInformation) error {
-	_, err := u.Person.changeContactInformation(contactInformation)
-	// TODO Raise event
+	changed, err := u.Person.changeContactInformation(contactInformation)
+	if err != nil && changed {
+		u.RegisterEvent(&event.PersonContactInformationChanged{
+			EventVersion: 1,
+			OccurredOn:   time.Now().Unix(),
+			TenantId:     string(u.TenantID),
+			Username:     u.Username,
+			ContactInformation: &event.ContactInformation{
+				EmailAddress: string(u.Person.ContactInformation.EmailAddress),
+				PostalAddress: &event.PostalAddress{
+					StreetName:     u.Person.ContactInformation.PostalAddress.StreetName,
+					BuildingNumber: u.Person.ContactInformation.PostalAddress.BuildingNumber,
+					PostalCode:     u.Person.ContactInformation.PostalAddress.PostalCode,
+					Town:           u.Person.ContactInformation.PostalAddress.Town,
+					StateProvince:  u.Person.ContactInformation.PostalAddress.StateProvince,
+					CountryCode:    u.Person.ContactInformation.PostalAddress.CountryCode,
+				},
+				PrimaryTelephone:   string(u.Person.ContactInformation.PrimaryTelephone),
+				SecondaryTelephone: string(u.Person.ContactInformation.SecondaryTelephone),
+			},
+		})
+	}
 	return err
 }
 
 // ChangePersonalName will change the personal name.
 func (u *User) ChangePersonalName(name FullName) error {
-	_, err := u.Person.changeName(name)
-	// TODO Raise event
+	changed, err := u.Person.changeName(name)
+	if err != nil && changed {
+		u.RegisterEvent(&event.PersonNameChanged{
+			EventVersion: 1,
+			OccurredOn:   time.Now().Unix(),
+			TenantId:     string(u.TenantID),
+			Username:     u.Username,
+			Name: &event.FullName{
+				FirstName: u.Person.Name.FirstName,
+				LastName:  u.Person.Name.LastName,
+			},
+		})
+	}
 	return err
 }
 
 // DefineEnablement the enablement of this user.
 func (u *User) DefineEnablement(enablement Enablement) error {
-	u.Enablement = enablement
-	// TODO Raise event
+	if u.Enablement != enablement {
+		u.Enablement = enablement
+		u.RegisterEvent(&event.UserEnablementChanged{
+			EventVersion: 1,
+			OccurredOn:   time.Now().Unix(),
+			TenantId:     string(u.TenantID),
+			Username:     u.Username,
+			Enablement: &event.Enablement{
+				Enabled:   enablement.Enabled,
+				StartDate: enablement.StartDate.Unix(),
+				EndDate:   enablement.EndDate.Unix(),
+			},
+		})
+	}
 	return nil
 }
 

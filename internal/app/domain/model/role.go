@@ -1,6 +1,12 @@
 package model
 
-import "github.com/maurofran/kit/assert"
+import (
+	"time"
+
+	"github.com/maurofran/iam/internal/app/domain/model/event"
+	"github.com/maurofran/iam/internal/pkg/aggregate"
+	"github.com/maurofran/kit/assert"
+)
 
 const roleGroupPrefix = "ROLE-INTERNAL-GROUP: "
 
@@ -15,6 +21,7 @@ type RoleRepository interface {
 
 // Role is the aggregate root object for roles.
 type Role struct {
+	aggregate.Root
 	TenantID        TenantID
 	Name            string
 	Description     string
@@ -33,7 +40,14 @@ func newRole(tenantID TenantID, name, description string, supportsNesting bool) 
 	if err != nil {
 		return nil, err
 	}
-	return &Role{tenantID, name, description, supportsNesting, group}, nil
+	role := &Role{TenantID: tenantID, Name: name, Description: description, SupportsNesting: supportsNesting, Group: group}
+	role.RegisterEvent(&event.RoleProvisioned{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(tenantID),
+		RoleName:     name,
+	})
+	return role, nil
 }
 
 // AssignGroup will assign the supplied group to this role.
@@ -44,8 +58,17 @@ func (r *Role) AssignGroup(group *Group, memberService GroupMemberService) error
 	if err := assert.Equals(group.TenantID, r.TenantID, "group.TenantID"); err != nil {
 		return err
 	}
-	return r.Group.AddGroup(group, memberService)
-	// TODO Raise event
+	if err := r.Group.AddGroup(group, memberService); err != nil {
+		return err
+	}
+	r.RegisterEvent(&event.GroupAssignedToRole{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(r.TenantID),
+		RoleName:     r.Name,
+		GroupName:    group.Name,
+	})
+	return nil
 }
 
 // AssignUser will assign the supplied user to this role.
@@ -53,8 +76,17 @@ func (r *Role) AssignUser(user *User) error {
 	if err := assert.Equals(user.TenantID, r.TenantID, "user.TenantID"); err != nil {
 		return err
 	}
-	return r.Group.AddUser(user)
-	// TODO Raise event
+	if err := r.Group.AddUser(user); err != nil {
+		return err
+	}
+	r.RegisterEvent(&event.UserAssignedToRole{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(r.TenantID),
+		RoleName:     r.Name,
+		Username:     user.Username,
+	})
+	return nil
 }
 
 // IsInRole check if supplied user belongs to this role
@@ -67,12 +99,30 @@ func (r *Role) UnassignGroup(group *Group) error {
 	if err := assert.State(r.SupportsNesting, "role does not supports group nesting"); err != nil {
 		return err
 	}
-	return r.Group.RemoveGroup(group)
-	// TODO Raise event
+	removed, err := r.Group.RemoveGroup(group)
+	if err != nil && removed {
+		r.RegisterEvent(&event.GroupUnassignedFromRole{
+			EventVersion: 1,
+			OccurredOn:   time.Now().Unix(),
+			TenantId:     string(r.TenantID),
+			RoleName:     r.Name,
+			GroupName:    group.Name,
+		})
+	}
+	return err
 }
 
 // UnassignUser will unassign the user from role.
 func (r *Role) UnassignUser(user *User) error {
-	return r.Group.RemoveUser(user)
-	// TODO Raise event
+	removed, err := r.Group.RemoveUser(user)
+	if err != nil && removed {
+		r.RegisterEvent(&event.UserUnassignedFromRole{
+			EventVersion: 1,
+			OccurredOn:   time.Now().Unix(),
+			TenantId:     string(r.TenantID),
+			RoleName:     r.Name,
+			Username:     user.Username,
+		})
+	}
+	return err
 }

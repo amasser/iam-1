@@ -1,7 +1,11 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
+	"github.com/maurofran/iam/internal/app/domain/model/event"
+	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/kit/assert"
 	"github.com/pkg/errors"
 )
@@ -42,6 +46,7 @@ type TenantRepository interface {
 
 // Tenant is the aggregate root representing a tenant.
 type Tenant struct {
+	aggregate.Root
 	ID          TenantID
 	Name        string
 	Description string
@@ -61,7 +66,14 @@ func NewTenant(name, description string, active bool) (*Tenant, error) {
 	if err := assert.NotEmpty(description, "description"); err != nil {
 		return nil, err
 	}
-	return &Tenant{ID: id, Name: name, Description: description, Active: active}, nil
+	tenant := &Tenant{ID: id, Name: name, Description: description, Active: active}
+	tenant.RegisterEvent(&event.TenantProvisioned{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(id),
+		Name:         name,
+	})
+	return tenant, nil
 }
 
 func assertTenantActive(t *Tenant) error {
@@ -72,7 +84,11 @@ func assertTenantActive(t *Tenant) error {
 func (t *Tenant) Activate() {
 	if !t.Active {
 		t.Active = true
-		// TODO Raise event
+		t.RegisterEvent(&event.TenantActivated{
+			EventVersion: 1,
+			OccurredOn:   time.Now().Unix(),
+			TenantId:     string(t.ID),
+		})
 	}
 }
 
@@ -80,7 +96,11 @@ func (t *Tenant) Activate() {
 func (t *Tenant) Deactivate() {
 	if t.Active {
 		t.Active = false
-		// TODO Raise event
+		t.RegisterEvent(&event.TenantDeactivated{
+			EventVersion: 1,
+			OccurredOn:   time.Now().Unix(),
+			TenantId:     string(t.ID),
+		})
 	}
 }
 

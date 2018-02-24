@@ -1,1 +1,2 @@
 vendor/
+internal/app/domain/model/event

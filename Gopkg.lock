@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/google/uuid"
   packages = ["."]
   revision = "064e2069ce9c359c118179501254f67d7d37ba24"
@@ -10,10 +16,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/maurofran/kit"
-  packages = [
-    "assert",
-    "domain"
-  ]
+  packages = ["assert"]
   revision = "b6d701ec0d72656a35f5da9f33fea09974b775f0"
 
 [[projects]]
@@ -23,29 +26,17 @@
   version = "v0.8.0"
 
 [[projects]]
-  branch = "v2"
-  name = "gopkg.in/mgo.v2"
+  branch = "master"
+  name = "golang.org/x/crypto"
   packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram"
+    "bcrypt",
+    "blowfish"
   ]
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
-
-[[projects]]
-  name = "upper.io/db.v3"
-  packages = [
-    ".",
-    "internal/immutable"
-  ]
-  revision = "7c550bc7b8b2915197ae407336e1fe2a6504222d"
-  version = "v3.5.1"
+  revision = "49796115aa4b964c318aad4f3084fdb41e9aa067"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6f681aebbae87b7025f3f2a6cc1a2bfd94ac6b11041bb68bbeecc69f4126daa0"
+  inputs-digest = "2a56d14514f42e2298616f5a540c2d6917eaf799d62c2def86332b372f787aa0"
   solver-name = "gps-cdcl"
   solver-version = 1

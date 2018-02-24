@@ -1,6 +1,10 @@
 package model
 
 import (
+	"time"
+
+	"github.com/maurofran/iam/internal/app/domain/model/event"
+	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/kit/assert"
 )
 
@@ -15,6 +19,7 @@ type GroupRepository interface {
 
 // Group is the aggregate root for groups.
 type Group struct {
+	aggregate.Root
 	TenantID    TenantID
 	Name        string
 	Description string
@@ -29,7 +34,14 @@ func newGroup(tenantID TenantID, name, description string) (*Group, error) {
 	if err := assert.NotEmpty(name, "name"); err != nil {
 		return nil, err
 	}
-	return &Group{tenantID, name, description, nil}, nil
+	group := &Group{TenantID: tenantID, Name: name, Description: description}
+	group.RegisterEvent(&event.GroupProvisioned{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(tenantID),
+		GroupName:    name,
+	})
+	return group, nil
 }
 
 // AddGroup is used to add the supplied group as a member of this one.
@@ -47,6 +59,13 @@ func (g *Group) AddGroup(other *Group, memberService GroupMemberService) error {
 		return err
 	}
 	g.Members = append(g.Members, other.toGroupMember())
+	g.RegisterEvent(&event.GroupGroupAdded{
+		EventVersion:    1,
+		OccurredOn:      time.Now().Unix(),
+		TenantId:        string(g.TenantID),
+		GroupName:       g.Name,
+		NestedGroupName: other.Name,
+	})
 	return nil
 }
 
@@ -61,6 +80,13 @@ func (g *Group) AddUser(user *User) error {
 		return err
 	}
 	g.Members = append(g.Members, user.toGroupMember())
+	g.RegisterEvent(&event.GroupUserAdded{
+		EventVersion: 1,
+		OccurredOn:   time.Now().Unix(),
+		TenantId:     string(g.TenantID),
+		GroupName:    g.Name,
+		Username:     user.Username,
+	})
 	return nil
 }
 
@@ -86,9 +112,9 @@ func (g *Group) IsMember(user *User, memberService GroupMemberService) (bool, er
 // RemoveGroup will remove the given group from the receiver one.
 // The function call can fail either if the supplied group does not belongs to the
 // tenant of receiver group.
-func (g *Group) RemoveGroup(other *Group) error {
+func (g *Group) RemoveGroup(other *Group) (bool, error) {
 	if err := assert.Equals(other.TenantID, g.TenantID, "other.TenantID"); err != nil {
-		return err
+		return false, err
 	}
 	groupMember := other.toGroupMember()
 	for i, member := range g.Members {
@@ -98,17 +124,24 @@ func (g *Group) RemoveGroup(other *Group) error {
 			m[i] = m[len(m)-1]
 			m = m[:len(m)-1]
 			g.Members = m
-			return nil
+			g.RegisterEvent(&event.GroupGroupRemoved{
+				EventVersion:    1,
+				OccurredOn:      time.Now().Unix(),
+				TenantId:        string(g.TenantID),
+				GroupName:       g.Name,
+				NestedGroupName: other.Name,
+			})
+			return true, nil
 		}
 	}
-	return nil
+	return false, nil
 }
 
 // RemoveUser will remove the given user from the receiver group.
 // The function call fail if the tenant of the user is not the same of the receiver group.
-func (g *Group) RemoveUser(user *User) error {
+func (g *Group) RemoveUser(user *User) (bool, error) {
 	if err := assert.Equals(user.TenantID, g.TenantID, "user.TenantID"); err != nil {
-		return err
+		return false, err
 	}
 	userMember := user.toGroupMember()
 	for i, member := range g.Members {
@@ -118,10 +151,17 @@ func (g *Group) RemoveUser(user *User) error {
 			m[i] = m[len(m)-1]
 			m = m[:len(m)-1]
 			g.Members = m
-			return nil
+			g.RegisterEvent(&event.GroupUserRemoved{
+				EventVersion: 1,
+				OccurredOn:   time.Now().Unix(),
+				TenantId:     string(g.TenantID),
+				GroupName:    g.Name,
+				Username:     user.Username,
+			})
+			return true, nil
 		}
 	}
-	return nil
+	return false, nil
 }
 
 func (g *Group) toGroupMember() GroupMember {
