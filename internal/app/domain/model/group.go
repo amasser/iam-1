@@ -21,8 +21,8 @@ type Group struct {
 	Members     []GroupMember
 }
 
-// NewGroup create a new instance of group aggregate root.
-func NewGroup(tenantID TenantID, name, description string) (*Group, error) {
+// newGroup create a new instance of group aggregate root.
+func newGroup(tenantID TenantID, name, description string) (*Group, error) {
 	if err := assert.NotZero(tenantID, "tenantID"); err != nil {
 		return nil, err
 	}

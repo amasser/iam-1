@@ -31,7 +31,7 @@ type User struct {
 // NewUser will create a new user with supplied data.
 //
 // The function will return an error if any of supplied data is not valid.
-func (u *User) NewUser(tenantID TenantID, username, password string, enablement Enablement, person *Person) (*User, error) {
+func (u *User) newUser(tenantID TenantID, username, password string, enablement Enablement, person *Person) (*User, error) {
 	if err := assert.NotZero(tenantID, "tenantID"); err != nil {
 		return nil, err
 	}
