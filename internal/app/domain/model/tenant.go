@@ -109,13 +109,13 @@ func (t *Tenant) InvitationFor(identifier string) (*Invitation, error) {
 	if err := assertTenantActive(t); err != nil {
 		return nil, err
 	}
-	return t.invitationFor(identifier)
+	return t.invitationFor(identifier), nil
 }
 
 // WithdrawInvitation will remove the invitation for supplied identifier.
 func (t *Tenant) WithdrawInvitation(identifier string) error {
 	if err := assertTenantActive(t); err != nil {
-		return nil, err
+		return err
 	}
 	for i, invitation := range t.Invitations {
 		if invitation.identifiedBy(identifier) {
@@ -153,7 +153,7 @@ func (t *Tenant) AllUnavailableInvitations() ([]InvitationDescriptor, error) {
 	if err := assertTenantActive(t); err != nil {
 		return nil, err
 	}
-	return allInvitationsFor(false), nil
+	return t.allInvitationsFor(false), nil
 }
 
 // RegisterUser will register a new user for this tenant.
@@ -161,8 +161,12 @@ func (t *Tenant) RegisterUser(identifier, username, password string, enablement 
 	if err := assertTenantActive(t); err != nil {
 		return nil, err
 	}
-	if t.IsInvitationAvailableThrough(identifier) {
-		user, err := NewUser(t.ID, username, password, enablement, person)
+	available, err := t.IsInvitationAvailableThrough(identifier)
+	if err != nil {
+		return nil, err
+	}
+	if !available {
+		user, err := newUser(t.ID, username, password, enablement, person)
 		if err != nil {
 			return nil, err
 		}
@@ -189,16 +193,17 @@ func (t *Tenant) ProvisionRole(name, description string, supportsNesting bool) (
 	if err := assertTenantActive(t); err != nil {
 		return nil, err
 	}
-	panic("not implemented")
+	return newRole(t.ID, name, description, supportsNesting)
+	// TODO Raise event
 }
 
-func (t *Tenant) invitationFor(identifier string) (*Invitation, error) {
+func (t *Tenant) invitationFor(identifier string) *Invitation {
 	for _, i := range t.Invitations {
 		if i.identifiedBy(identifier) {
-			return nil, i
+			return i
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 func (t *Tenant) allInvitationsFor(status bool) []InvitationDescriptor {
