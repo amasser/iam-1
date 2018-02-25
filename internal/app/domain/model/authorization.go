@@ -13,7 +13,10 @@ func (as *AuthorizationService) IsUserOfTenantInRole(tenantID TenantID, username
 	if err != nil {
 		return false, err
 	}
-	return user != null && as.IsUserInRole(user, role), nil
+	if user != nil {
+		return as.IsUserInRole(user, role)
+	}
+	return false, nil
 }
 
 // IsUserInRole verify if the user is in role.
