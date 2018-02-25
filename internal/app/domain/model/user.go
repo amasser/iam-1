@@ -20,6 +20,8 @@ type UserRepository interface {
 	AllUsers(TenantID) ([]*User, error)
 	// UserWithUsername will retrieve a user for a username.
 	UserWithUsername(TenantID, string) (*User, error)
+	// UserWithCredentials will retrieve a user with specific credentials.
+	UserWithCredentials(TenantID, string, string) (*User, error)
 }
 
 // User is the aggregate root used to provide a user.
@@ -141,6 +143,10 @@ func (u *User) toGroupMember() GroupMember {
 	return GroupMember{MemberTypeUser, u.Username}
 }
 
+func (u *User) toDescriptor() UserDescriptor {
+	return UserDescriptor{u.TenantID, u.Username, u.Person.Name, u.Person.EmailAddress()}
+}
+
 func (u *User) protectPassword(currentPassword, newPassword string) error {
 	if err := assert.NotEquals(currentPassword, newPassword, "currentPassword"); err != nil {
 		return err
@@ -157,6 +163,19 @@ func (u *User) protectPassword(currentPassword, newPassword string) error {
 	}
 	u.Password = encrypted
 	return nil
+}
+
+// UserDescriptor is the value object describing a user.
+type UserDescriptor struct {
+	TenantID     TenantID
+	Username     string
+	Name         FullName
+	EmailAddress EmailAddress
+}
+
+// IsZero will check if supplied user descriptor is zero value.
+func (ud UserDescriptor) IsZero() bool {
+	return ud.TenantID.IsZero() && ud.Username == "" && ud.Name.IsZero() && ud.EmailAddress.IsZero()
 }
 
 // UserRegistered is the event raised when a new user is registered.
