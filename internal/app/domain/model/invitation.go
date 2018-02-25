@@ -10,10 +10,10 @@ import (
 
 // Invitation is the entity object for tenant invitations.
 type Invitation struct {
-	InvitationID string
-	Description  string
-	StartingOn   time.Time
-	Until        time.Time
+	InvitationID string    `bson:"invitationId"`
+	Description  string    `bson:"description"`
+	StartingOn   time.Time `bson:"startingOn,omitempty"`
+	Until        time.Time `bson:"until,omitempty"`
 }
 
 func newInvitation(description string) (*Invitation, error) {

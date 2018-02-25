@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/golang/protobuf"
-  packages = ["proto"]
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
-
-[[projects]]
   name = "github.com/google/uuid"
   packages = ["."]
   revision = "064e2069ce9c359c118179501254f67d7d37ba24"
@@ -34,9 +28,31 @@
   ]
   revision = "49796115aa4b964c318aad4f3084fdb41e9aa067"
 
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/mgo.v2"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
+  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+
+[[projects]]
+  name = "upper.io/db.v3"
+  packages = [
+    ".",
+    "internal/immutable",
+    "mongo"
+  ]
+  revision = "bba00b389f7e9cfdd8988e08c2832ab39119d7cf"
+  version = "v3.5.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2a56d14514f42e2298616f5a540c2d6917eaf799d62c2def86332b372f787aa0"
+  inputs-digest = "a084402e5f9a429ce8738e8b3edcb006483837f3d862af546f6705efd0adeafc"
   solver-name = "gps-cdcl"
   solver-version = 1

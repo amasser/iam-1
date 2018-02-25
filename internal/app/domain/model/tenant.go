@@ -48,12 +48,12 @@ type TenantRepository interface {
 
 // Tenant is the aggregate root representing a tenant.
 type Tenant struct {
-	aggregate.Root
-	ID          TenantID
-	Name        string
-	Description string
-	Active      bool
-	Invitations []*Invitation
+	aggregate.Root `bson:"-"`
+	ID             TenantID      `bson:"tenantId"`
+	Name           string        `bson:"name"`
+	Description    string        `bson:"description"`
+	Active         bool          `bson:"active"`
+	Invitations    []*Invitation `bson:"invitations"`
 }
 
 // NewTenant will create a new tenant with supplied data.
