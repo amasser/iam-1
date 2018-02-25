@@ -50,7 +50,7 @@ func newRole(tenantID TenantID, name, description string, supportsNesting bool) 
 }
 
 // AssignGroup will assign the supplied group to this role.
-func (r *Role) AssignGroup(group *Group, memberService GroupMemberService) error {
+func (r *Role) AssignGroup(group *Group, memberService *GroupMemberService) error {
 	if err := assert.State(r.SupportsNesting, "role does not supports group nesting"); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (r *Role) AssignUser(user *User) error {
 }
 
 // IsInRole check if supplied user belongs to this role
-func (r *Role) IsInRole(user *User, memberService GroupMemberService) (bool, error) {
+func (r *Role) IsInRole(user *User, memberService *GroupMemberService) (bool, error) {
 	return r.Group.IsMember(user, memberService)
 }
 

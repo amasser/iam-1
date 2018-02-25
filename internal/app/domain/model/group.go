@@ -46,7 +46,7 @@ func newGroup(tenantID TenantID, name, description string) (*Group, error) {
 // AddGroup is used to add the supplied group as a member of this one.
 // The function call can fail either if the supplied group does not belongs to the
 // tenant of receiver group or if a group recursion is detected.
-func (g *Group) AddGroup(other *Group, memberService GroupMemberService) error {
+func (g *Group) AddGroup(other *Group, memberService *GroupMemberService) error {
 	if err := assert.Equals(other.TenantID, g.TenantID, "other.TenantID"); err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (g *Group) AddUser(user *User) error {
 // IsMember will check if supplied user is member of this group (either directly or through a nested group).
 // The function call can fail either if the user is not enabled or if the user does not
 // belongs to the tenant of the receiver group.
-func (g *Group) IsMember(user *User, memberService GroupMemberService) (bool, error) {
+func (g *Group) IsMember(user *User, memberService *GroupMemberService) (bool, error) {
 	if err := assert.Equals(user.TenantID, g.TenantID, "user.TenantID"); err != nil {
 		return false, err
 	}
