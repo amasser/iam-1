@@ -20,12 +20,12 @@ type RoleRepository interface {
 
 // Role is the aggregate root object for roles.
 type Role struct {
-	aggregate.Root
-	TenantID        TenantID
-	Name            string
-	Description     string
-	SupportsNesting bool
-	Group           *Group
+	aggregate.Root  `bson:"-"`
+	TenantID        TenantID `bson:"tenantId"`
+	Name            string   `bson:"name"`
+	Description     string   `bson:"description"`
+	SupportsNesting bool     `bson:"supportsNesting"`
+	Group           *Group   `bson:"nestedGroup"`
 }
 
 func newRole(tenantID TenantID, name, description string, supportsNesting bool) (*Role, error) {
