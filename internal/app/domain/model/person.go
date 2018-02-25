@@ -36,7 +36,7 @@ type Person struct {
 }
 
 // NewPerson will create a new person for supplied data.
-func NewPerson(fullName FullName, contactInformation ContactInformation) (*Person, error) {
+func newPerson(fullName FullName, contactInformation ContactInformation) (*Person, error) {
 	if err := assert.NotZero(fullName, "fullName"); err != nil {
 		return nil, err
 	}

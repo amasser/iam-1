@@ -3,6 +3,9 @@ package model
 import (
 	"time"
 
+	"github.com/maurofran/iam/internal/pkg/event"
+	"github.com/maurofran/iam/internal/pkg/password"
+
 	"github.com/google/uuid"
 	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/kit/assert"
@@ -54,7 +57,7 @@ type Tenant struct {
 }
 
 // NewTenant will create a new tenant with supplied data.
-func NewTenant(name, description string, active bool) (*Tenant, error) {
+func newTenant(name, description string, active bool) (*Tenant, error) {
 	id, err := randomTenantID()
 	if err != nil {
 		return nil, err
@@ -192,7 +195,6 @@ func (t *Tenant) RegisterUser(identifier, username, password string, enablement 
 		if err = t.WithdrawInvitation(identifier); err != nil {
 			return nil, err
 		}
-		// TODO Raise event
 		return user, nil
 	}
 	return nil, nil
@@ -204,16 +206,14 @@ func (t *Tenant) ProvisionGroup(name, description string) (*Group, error) {
 		return nil, err
 	}
 	return newGroup(t.ID, name, description)
-	// TODO Raise event
 }
 
 // ProvisionRole will provision a new role for this tenant.
-func (t *Tenant) ProvisionRole(name, description string, supportsNesting bool) (interface{}, error) {
+func (t *Tenant) ProvisionRole(name, description string, supportsNesting bool) (*Role, error) {
 	if err := assertTenantActive(t); err != nil {
 		return nil, err
 	}
 	return newRole(t.ID, name, description, supportsNesting)
-	// TODO Raise event
 }
 
 func (t *Tenant) invitationFor(identifier string) *Invitation {
@@ -267,4 +267,92 @@ type TenantAdministratorRegistered struct {
 	TemporaryPassword string
 	EmailAddress      EmailAddress
 	AdministratorName FullName
+}
+
+// TenantProvisioningService is the domain service used to provision tenants.
+type TenantProvisioningService struct {
+	TenantRepo TenantRepository
+	RoleRepo   RoleRepository
+	UserRepo   UserRepository
+}
+
+// ProvisionTenant will provision a new tenant with supplied data.
+func (tps *TenantProvisioningService) ProvisionTenant(
+	tenantName,
+	tenantDescription string,
+	administratorName FullName,
+	emailAddress EmailAddress,
+	postalAddress PostalAddress,
+	primaryTelephone Telephone,
+	secondaryTelephone Telephone,
+) (*Tenant, error) {
+	tenant, err := newTenant(tenantName, tenantDescription, true)
+	if err != nil {
+		return nil, err
+	}
+	if err := tps.TenantRepo.Add(tenant); err != nil {
+		return nil, err
+	}
+	if err := tps.registerAdministratorFor(tenant, administratorName, emailAddress, postalAddress, primaryTelephone, secondaryTelephone); err != nil {
+		// Compensating transaction.
+		tps.TenantRepo.Remove(tenant)
+		return nil, err
+	}
+	return tenant, nil
+}
+
+func (tps *TenantProvisioningService) registerAdministratorFor(
+	tenant *Tenant,
+	administratorName FullName,
+	emailAddress EmailAddress,
+	postalAddress PostalAddress,
+	primaryTelephone Telephone,
+	secondaryTelephone Telephone,
+) error {
+	invitation, err := tenant.OfferInvitation("init")
+	if err != nil {
+		return err
+	}
+	temporaryPassword := password.Generate()
+	person, err := newPerson(administratorName, ContactInformation{
+		EmailAddress:       emailAddress,
+		PostalAddress:      postalAddress,
+		PrimaryTelephone:   primaryTelephone,
+		SecondaryTelephone: secondaryTelephone,
+	})
+	if err != nil {
+		return err
+	}
+	admin, err := tenant.RegisterUser(invitation.InvitationID, "admin", temporaryPassword, IndefiniteEnablement(), person)
+	if err != nil {
+		return err
+	}
+	if err := tps.UserRepo.Add(admin); err != nil {
+		return err
+	}
+
+	role, err := tenant.ProvisionRole("Administrator", "Default "+tenant.Name+" Administrator", false)
+	if err != nil {
+		return err
+	}
+	if err := role.AssignUser(admin); err != nil {
+		return err
+	}
+
+	if err := tps.RoleRepo.Add(role); err != nil {
+		return err
+	}
+
+	event.Publish(TenantAdministratorRegistered{
+		EventVersion:      1,
+		OccurredOn:        time.Now(),
+		TenantID:          tenant.ID,
+		TenantName:        tenant.Name,
+		Username:          admin.Username,
+		TemporaryPassword: temporaryPassword,
+		EmailAddress:      emailAddress,
+		AdministratorName: administratorName,
+	})
+
+	return nil
 }
