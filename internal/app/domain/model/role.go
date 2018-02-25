@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/maurofran/iam/internal/app/domain/model/event"
 	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/kit/assert"
 )
@@ -41,11 +40,11 @@ func newRole(tenantID TenantID, name, description string, supportsNesting bool) 
 		return nil, err
 	}
 	role := &Role{TenantID: tenantID, Name: name, Description: description, SupportsNesting: supportsNesting, Group: group}
-	role.RegisterEvent(&event.RoleProvisioned{
+	role.RegisterEvent(RoleProvisioned{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(tenantID),
-		RoleName:     name,
+		OccurredOn:   time.Now(),
+		TenantID:     role.TenantID,
+		RoleName:     role.Name,
 	})
 	return role, nil
 }
@@ -61,10 +60,10 @@ func (r *Role) AssignGroup(group *Group, memberService GroupMemberService) error
 	if err := r.Group.AddGroup(group, memberService); err != nil {
 		return err
 	}
-	r.RegisterEvent(&event.GroupAssignedToRole{
+	r.RegisterEvent(GroupAssignedToRole{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(r.TenantID),
+		OccurredOn:   time.Now(),
+		TenantID:     r.TenantID,
 		RoleName:     r.Name,
 		GroupName:    group.Name,
 	})
@@ -79,10 +78,10 @@ func (r *Role) AssignUser(user *User) error {
 	if err := r.Group.AddUser(user); err != nil {
 		return err
 	}
-	r.RegisterEvent(&event.UserAssignedToRole{
+	r.RegisterEvent(UserAssignedToRole{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(r.TenantID),
+		OccurredOn:   time.Now(),
+		TenantID:     r.TenantID,
 		RoleName:     r.Name,
 		Username:     user.Username,
 	})
@@ -101,10 +100,10 @@ func (r *Role) UnassignGroup(group *Group) error {
 	}
 	removed, err := r.Group.RemoveGroup(group)
 	if err != nil && removed {
-		r.RegisterEvent(&event.GroupUnassignedFromRole{
+		r.RegisterEvent(GroupUnassignedFromRole{
 			EventVersion: 1,
-			OccurredOn:   time.Now().Unix(),
-			TenantId:     string(r.TenantID),
+			OccurredOn:   time.Now(),
+			TenantID:     r.TenantID,
 			RoleName:     r.Name,
 			GroupName:    group.Name,
 		})
@@ -116,13 +115,63 @@ func (r *Role) UnassignGroup(group *Group) error {
 func (r *Role) UnassignUser(user *User) error {
 	removed, err := r.Group.RemoveUser(user)
 	if err != nil && removed {
-		r.RegisterEvent(&event.UserUnassignedFromRole{
+		r.RegisterEvent(&UserUnassignedFromRole{
 			EventVersion: 1,
-			OccurredOn:   time.Now().Unix(),
-			TenantId:     string(r.TenantID),
+			OccurredOn:   time.Now(),
+			TenantID:     r.TenantID,
 			RoleName:     r.Name,
 			Username:     user.Username,
 		})
 	}
 	return err
+}
+
+// ClearEvents will clear events of this role.
+func (r *Role) ClearEvents() {
+	r.Root.ClearEvents()
+	r.Group.ClearEvents()
+}
+
+// RoleProvisioned is the event raised when a new role is provisioned.s
+type RoleProvisioned struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	RoleName     string
+}
+
+// GroupAssignedToRole is the event raised when a group is assigned to role.
+type GroupAssignedToRole struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	RoleName     string
+	GroupName    string
+}
+
+// GroupUnassignedFromRole is the event raised when a group is unassigned from a role.
+type GroupUnassignedFromRole struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	RoleName     string
+	GroupName    string
+}
+
+// UserAssignedToRole is the event raised when a user is assigned to a role.
+type UserAssignedToRole struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	RoleName     string
+	Username     string
+}
+
+// UserUnassignedFromRole is the event raised when a user is unassigned from a role.
+type UserUnassignedFromRole struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	RoleName     string
+	Username     string
 }

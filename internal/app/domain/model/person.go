@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/maurofran/kit/assert"
 )
 
@@ -69,4 +71,22 @@ func (p *Person) changeName(fullName FullName) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// PersonContactInformationChanged is the event raised when person contact information changed.
+type PersonContactInformationChanged struct {
+	EventVersion       int
+	OccurredOn         time.Time
+	TenantID           TenantID
+	Username           string
+	ContactInformation ContactInformation
+}
+
+// PersonNameChanged is the event raised when a person name is changed.
+type PersonNameChanged struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	Username     string
+	Name         FullName
 }

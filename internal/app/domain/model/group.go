@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/maurofran/iam/internal/app/domain/model/event"
 	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/kit/assert"
 )
@@ -35,11 +34,11 @@ func newGroup(tenantID TenantID, name, description string) (*Group, error) {
 		return nil, err
 	}
 	group := &Group{TenantID: tenantID, Name: name, Description: description}
-	group.RegisterEvent(&event.GroupProvisioned{
+	group.RegisterEvent(GroupProvisioned{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(tenantID),
-		GroupName:    name,
+		OccurredOn:   time.Now(),
+		TenantID:     group.TenantID,
+		GroupName:    group.Name,
 	})
 	return group, nil
 }
@@ -59,10 +58,10 @@ func (g *Group) AddGroup(other *Group, memberService GroupMemberService) error {
 		return err
 	}
 	g.Members = append(g.Members, other.toGroupMember())
-	g.RegisterEvent(&event.GroupGroupAdded{
+	g.RegisterEvent(&GroupGroupAdded{
 		EventVersion:    1,
-		OccurredOn:      time.Now().Unix(),
-		TenantId:        string(g.TenantID),
+		OccurredOn:      time.Now(),
+		TenantID:        g.TenantID,
 		GroupName:       g.Name,
 		NestedGroupName: other.Name,
 	})
@@ -80,10 +79,10 @@ func (g *Group) AddUser(user *User) error {
 		return err
 	}
 	g.Members = append(g.Members, user.toGroupMember())
-	g.RegisterEvent(&event.GroupUserAdded{
+	g.RegisterEvent(&GroupUserAdded{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(g.TenantID),
+		OccurredOn:   time.Now(),
+		TenantID:     g.TenantID,
 		GroupName:    g.Name,
 		Username:     user.Username,
 	})
@@ -124,10 +123,11 @@ func (g *Group) RemoveGroup(other *Group) (bool, error) {
 			m[i] = m[len(m)-1]
 			m = m[:len(m)-1]
 			g.Members = m
-			g.RegisterEvent(&event.GroupGroupRemoved{
+
+			g.RegisterEvent(GroupGroupRemoved{
 				EventVersion:    1,
-				OccurredOn:      time.Now().Unix(),
-				TenantId:        string(g.TenantID),
+				OccurredOn:      time.Now(),
+				TenantID:        g.TenantID,
 				GroupName:       g.Name,
 				NestedGroupName: other.Name,
 			})
@@ -151,10 +151,11 @@ func (g *Group) RemoveUser(user *User) (bool, error) {
 			m[i] = m[len(m)-1]
 			m = m[:len(m)-1]
 			g.Members = m
-			g.RegisterEvent(&event.GroupUserRemoved{
+
+			g.RegisterEvent(GroupUserRemoved{
 				EventVersion: 1,
-				OccurredOn:   time.Now().Unix(),
-				TenantId:     string(g.TenantID),
+				OccurredOn:   time.Now(),
+				TenantID:     g.TenantID,
 				GroupName:    g.Name,
 				Username:     user.Username,
 			})
@@ -166,4 +167,48 @@ func (g *Group) RemoveUser(user *User) (bool, error) {
 
 func (g *Group) toGroupMember() GroupMember {
 	return GroupMember{MemberTypeGroup, g.Name}
+}
+
+// GroupProvisioned is the event raised when a new group is provisioned.
+type GroupProvisioned struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	GroupName    string
+}
+
+// GroupGroupAdded is the event raised when a group is added to a group.
+type GroupGroupAdded struct {
+	EventVersion    int
+	OccurredOn      time.Time
+	TenantID        TenantID
+	GroupName       string
+	NestedGroupName string
+}
+
+// GroupGroupRemoved is the event raised when a group is removed from a group.
+type GroupGroupRemoved struct {
+	EventVersion    int
+	OccurredOn      time.Time
+	TenantID        TenantID
+	GroupName       string
+	NestedGroupName string
+}
+
+// GroupUserAdded is the event raised when a user is added to a group.
+type GroupUserAdded struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	GroupName    string
+	Username     string
+}
+
+// GroupUserRemoved is the event raised when a user is removed from a group.
+type GroupUserRemoved struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	GroupName    string
+	Username     string
 }

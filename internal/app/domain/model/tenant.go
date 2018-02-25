@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/maurofran/iam/internal/app/domain/model/event"
 	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/kit/assert"
 	"github.com/pkg/errors"
@@ -67,11 +66,11 @@ func NewTenant(name, description string, active bool) (*Tenant, error) {
 		return nil, err
 	}
 	tenant := &Tenant{ID: id, Name: name, Description: description, Active: active}
-	tenant.RegisterEvent(&event.TenantProvisioned{
+	tenant.RegisterEvent(TenantProvisioned{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(id),
-		Name:         name,
+		OccurredOn:   time.Now(),
+		TenantID:     tenant.ID,
+		Name:         tenant.Name,
 	})
 	return tenant, nil
 }
@@ -84,10 +83,10 @@ func assertTenantActive(t *Tenant) error {
 func (t *Tenant) Activate() {
 	if !t.Active {
 		t.Active = true
-		t.RegisterEvent(&event.TenantActivated{
+		t.RegisterEvent(TenantActivated{
 			EventVersion: 1,
-			OccurredOn:   time.Now().Unix(),
-			TenantId:     string(t.ID),
+			OccurredOn:   time.Now(),
+			TenantID:     t.ID,
 		})
 	}
 }
@@ -96,10 +95,10 @@ func (t *Tenant) Activate() {
 func (t *Tenant) Deactivate() {
 	if t.Active {
 		t.Active = false
-		t.RegisterEvent(&event.TenantDeactivated{
+		t.RegisterEvent(TenantDeactivated{
 			EventVersion: 1,
-			OccurredOn:   time.Now().Unix(),
-			TenantId:     string(t.ID),
+			OccurredOn:   time.Now(),
+			TenantID:     t.ID,
 		})
 	}
 }
@@ -234,4 +233,38 @@ func (t *Tenant) allInvitationsFor(status bool) []InvitationDescriptor {
 		}
 	}
 	return res
+}
+
+// TenantProvisioned is the event raised when a new tenant is provisioned.
+type TenantProvisioned struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	Name         string
+}
+
+// TenantActivated is the event raised when a tenant is activated.
+type TenantActivated struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+}
+
+// TenantDeactivated is the event raised when a tenant is deactivated.
+type TenantDeactivated struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+}
+
+// TenantAdministratorRegistered is the event raised when a tenant administrator is created.
+type TenantAdministratorRegistered struct {
+	EventVersion      int
+	OccurredOn        time.Time
+	TenantID          TenantID
+	TenantName        string
+	Username          string
+	TemporaryPassword string
+	EmailAddress      EmailAddress
+	AdministratorName FullName
 }

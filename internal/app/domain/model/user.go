@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/maurofran/iam/internal/app/domain/model/event"
 	"github.com/maurofran/iam/internal/pkg/aggregate"
 	"github.com/maurofran/iam/internal/pkg/password"
 	"github.com/maurofran/kit/assert"
@@ -53,18 +52,14 @@ func newUser(tenantID TenantID, username, password string, enablement Enablement
 	if err := user.protectPassword("", password); err != nil {
 		return nil, err
 	}
-	user.RegisterEvent(&event.UserRegistered{
+	user.RegisterEvent(&UserRegistered{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(tenantID),
-		Username:     username,
-		EmailAddress: string(person.ContactInformation.EmailAddress),
-		FullName: &event.FullName{
-			FirstName: person.Name.FirstName,
-			LastName:  person.Name.LastName,
-		},
+		OccurredOn:   time.Now(),
+		TenantID:     user.TenantID,
+		Username:     user.Username,
+		EmailAddress: user.Person.EmailAddress(),
+		FullName:     user.Person.Name,
 	})
-	// TODO Raise event
 	return user, nil
 }
 
@@ -83,10 +78,10 @@ func (u *User) ChangePassword(currentPassword, newPassword string) error {
 	if err := u.protectPassword(currentPassword, newPassword); err != nil {
 		return err
 	}
-	u.RegisterEvent(&event.UserPasswordChanged{
+	u.RegisterEvent(UserPasswordChanged{
 		EventVersion: 1,
-		OccurredOn:   time.Now().Unix(),
-		TenantId:     string(u.TenantID),
+		OccurredOn:   time.Now(),
+		TenantID:     u.TenantID,
 		Username:     u.Username,
 	})
 	return nil
@@ -96,24 +91,12 @@ func (u *User) ChangePassword(currentPassword, newPassword string) error {
 func (u *User) ChangePersonalContactInformation(contactInformation ContactInformation) error {
 	changed, err := u.Person.changeContactInformation(contactInformation)
 	if err != nil && changed {
-		u.RegisterEvent(&event.PersonContactInformationChanged{
-			EventVersion: 1,
-			OccurredOn:   time.Now().Unix(),
-			TenantId:     string(u.TenantID),
-			Username:     u.Username,
-			ContactInformation: &event.ContactInformation{
-				EmailAddress: string(u.Person.ContactInformation.EmailAddress),
-				PostalAddress: &event.PostalAddress{
-					StreetName:     u.Person.ContactInformation.PostalAddress.StreetName,
-					BuildingNumber: u.Person.ContactInformation.PostalAddress.BuildingNumber,
-					PostalCode:     u.Person.ContactInformation.PostalAddress.PostalCode,
-					Town:           u.Person.ContactInformation.PostalAddress.Town,
-					StateProvince:  u.Person.ContactInformation.PostalAddress.StateProvince,
-					CountryCode:    u.Person.ContactInformation.PostalAddress.CountryCode,
-				},
-				PrimaryTelephone:   string(u.Person.ContactInformation.PrimaryTelephone),
-				SecondaryTelephone: string(u.Person.ContactInformation.SecondaryTelephone),
-			},
+		u.RegisterEvent(PersonContactInformationChanged{
+			EventVersion:       1,
+			OccurredOn:         time.Now(),
+			TenantID:           u.TenantID,
+			Username:           u.Username,
+			ContactInformation: u.Person.ContactInformation,
 		})
 	}
 	return err
@@ -123,15 +106,12 @@ func (u *User) ChangePersonalContactInformation(contactInformation ContactInform
 func (u *User) ChangePersonalName(name FullName) error {
 	changed, err := u.Person.changeName(name)
 	if err != nil && changed {
-		u.RegisterEvent(&event.PersonNameChanged{
+		u.RegisterEvent(PersonNameChanged{
 			EventVersion: 1,
-			OccurredOn:   time.Now().Unix(),
-			TenantId:     string(u.TenantID),
+			OccurredOn:   time.Now(),
+			TenantID:     u.TenantID,
 			Username:     u.Username,
-			Name: &event.FullName{
-				FirstName: u.Person.Name.FirstName,
-				LastName:  u.Person.Name.LastName,
-			},
+			Name:         u.Person.Name,
 		})
 	}
 	return err
@@ -141,16 +121,12 @@ func (u *User) ChangePersonalName(name FullName) error {
 func (u *User) DefineEnablement(enablement Enablement) error {
 	if u.Enablement != enablement {
 		u.Enablement = enablement
-		u.RegisterEvent(&event.UserEnablementChanged{
+		u.RegisterEvent(UserEnablementChanged{
 			EventVersion: 1,
-			OccurredOn:   time.Now().Unix(),
-			TenantId:     string(u.TenantID),
+			OccurredOn:   time.Now(),
+			TenantID:     u.TenantID,
 			Username:     u.Username,
-			Enablement: &event.Enablement{
-				Enabled:   enablement.Enabled,
-				StartDate: enablement.StartDate.Unix(),
-				EndDate:   enablement.EndDate.Unix(),
-			},
+			Enablement:   u.Enablement,
 		})
 	}
 	return nil
@@ -181,4 +157,31 @@ func (u *User) protectPassword(currentPassword, newPassword string) error {
 	}
 	u.Password = encrypted
 	return nil
+}
+
+// UserRegistered is the event raised when a new user is registered.
+type UserRegistered struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	Username     string
+	EmailAddress EmailAddress
+	FullName     FullName
+}
+
+// UserPasswordChanged is the event raised when the password of a user changed.
+type UserPasswordChanged struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	Username     string
+}
+
+// UserEnablementChanged is the event raised when the user enablement status changed.
+type UserEnablementChanged struct {
+	EventVersion int
+	OccurredOn   time.Time
+	TenantID     TenantID
+	Username     string
+	Enablement   Enablement
 }
