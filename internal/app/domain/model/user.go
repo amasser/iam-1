@@ -10,28 +10,22 @@ import (
 
 // UserRepository is the interface for managing.
 type UserRepository interface {
-	// Add a user to virtual collection.
 	Add(*User) error
-	// Updates a user already in virtual collection.
 	Update(*User) error
-	// Removes a user from virtual collection.
 	Remove(*User) error
-	// AllUsers will retrieve all the users of virtual collection for tenant.
 	AllUsers(TenantID) ([]*User, error)
-	// UserWithUsername will retrieve a user for a username.
 	UserWithUsername(TenantID, string) (*User, error)
-	// UserWithCredentials will retrieve a user with specific credentials.
 	UserWithCredentials(TenantID, string, string) (*User, error)
 }
 
 // User is the aggregate root used to provide a user.
 type User struct {
-	aggregate.Root
-	TenantID   TenantID
-	Username   string
-	Password   string
-	Enablement Enablement
-	Person     *Person
+	aggregate.Root `bson:"-"`
+	TenantID       TenantID   `bson:"tenantId"`
+	Username       string     `bson:"username"`
+	Password       string     `bson:"password"`
+	Enablement     Enablement `bson:"enablement"`
+	Person         *Person    `bson:"person"`
 }
 
 // NewUser will create a new user with supplied data.

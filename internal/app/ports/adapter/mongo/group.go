@@ -66,7 +66,7 @@ func (r *GroupRepository) GroupNamed(tenantID model.TenantID, name string) (*mod
 		return nil, nil
 	}
 	if err != nil {
-		return errors.Wrapf(err, "unable to retrieve group for tenant %s and name %s from collection %s", tenantID, name, groupCollection)
+		return nil, errors.Wrapf(err, "unable to retrieve group for tenant %s and name %s from collection %s", tenantID, name, groupCollection)
 	}
 	return &group, nil
 }

@@ -8,10 +8,10 @@ import (
 
 // ContactInformation is the value object used in order to provide content information for a person.
 type ContactInformation struct {
-	PostalAddress      PostalAddress
-	EmailAddress       EmailAddress
-	PrimaryTelephone   Telephone
-	SecondaryTelephone Telephone
+	PostalAddress      PostalAddress `bson:"postalAddress"`
+	EmailAddress       EmailAddress  `bson:"emailAddress"`
+	PrimaryTelephone   Telephone     `bson:"primaryTelephone"`
+	SecondaryTelephone Telephone     `bson:"secondaryTelephone"`
 }
 
 // MakeContactInformation will create a new contact information structure with supplied parameters.
@@ -31,8 +31,8 @@ func (ci ContactInformation) IsZero() bool {
 
 // Person is an entity used in order to provide data about a person.
 type Person struct {
-	Name               FullName
-	ContactInformation ContactInformation
+	Name               FullName           `bson:"name"`
+	ContactInformation ContactInformation `bson:"contactInformation"`
 }
 
 // NewPerson will create a new person for supplied data.

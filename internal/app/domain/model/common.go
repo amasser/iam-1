@@ -60,12 +60,12 @@ func (t Telephone) IsZero() bool {
 //
 // The default value of PostalAddress can be used to represent an empty postal address.
 type PostalAddress struct {
-	StreetName     string
-	BuildingNumber string
-	PostalCode     string
-	Town           string
-	StateProvince  string
-	CountryCode    string
+	StreetName     string `bson:"streetName"`
+	BuildingNumber string `bson:"buildingNumber"`
+	PostalCode     string `bson:"postalCode"`
+	Town           string `bson:"town"`
+	StateProvince  string `bson:"stateProvince"`
+	CountryCode    string `bson:"countryCode"`
 }
 
 // MakePostalAddress will make a new postal address with supplied values.
@@ -98,8 +98,8 @@ func (pa PostalAddress) IsZero() bool {
 //
 // The default value of FullName value object is not a valid value and cannot be used.
 type FullName struct {
-	FirstName string
-	LastName  string
+	FirstName string `bson:"firstName"`
+	LastName  string `bson:"lastName"`
 }
 
 // MakeFullName will build a new full name with supplied parameters.

@@ -66,7 +66,7 @@ func (r *RoleRepository) RoleNamed(tenantID model.TenantID, name string) (*model
 		return nil, nil
 	}
 	if err != nil {
-		return errors.Wrapf(err, "error while retrieving role with name %s in tenant %s from collection %s", name, tenantID, roleCollection)
+		return nil, errors.Wrapf(err, "error while retrieving role with name %s in tenant %s from collection %s", name, tenantID, roleCollection)
 	}
-	return role, nil
+	return &role, nil
 }

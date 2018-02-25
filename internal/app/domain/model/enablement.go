@@ -9,9 +9,9 @@ import (
 //
 // Its default value (a disabled indefinite enablement) is a valid value object and can be used as is.
 type Enablement struct {
-	Enabled   bool
-	StartDate time.Time
-	EndDate   time.Time
+	Enabled   bool      `bson:"enabled"`
+	StartDate time.Time `bson:"startDate,omitempty"`
+	EndDate   time.Time `bson:"endDate,omitempty"`
 }
 
 // IndefiniteEnablement will make a new indefinite enabled-status enablement.
