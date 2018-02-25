@@ -18,11 +18,11 @@ type GroupRepository interface {
 
 // Group is the aggregate root for groups.
 type Group struct {
-	aggregate.Root
-	TenantID    TenantID
-	Name        string
-	Description string
-	Members     []GroupMember
+	aggregate.Root `bson:"-"`
+	TenantID       TenantID      `bson:"tenantId"`
+	Name           string        `bson:"name"`
+	Description    string        `bson:"description"`
+	Members        []GroupMember `bson:"members"`
 }
 
 // newGroup create a new instance of group aggregate root.

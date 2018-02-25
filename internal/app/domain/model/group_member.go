@@ -25,8 +25,8 @@ func (gmt GroupMemberType) String() string {
 //
 // The default value of group member is not a valid value.
 type GroupMember struct {
-	Type GroupMemberType
-	Name string
+	Type GroupMemberType `bson:"type"`
+	Name string          `bson:"name"`
 }
 
 // IsGroup will check if the member is a group.
