@@ -4,6 +4,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/maurofran/iam/internal/app/domain/model"
+	"github.com/maurofran/iam/internal/app/ports/adapter/mongo"
+
 	"github.com/pkg/errors"
 	cli "gopkg.in/urfave/cli.v1"
 	db "upper.io/db.v3/mongo"
@@ -45,10 +48,28 @@ func startDaemon(c *cli.Context) error {
 	}
 	defer session.Close()
 
-	//	tenantRepo := &mongo.TenantRepository{Database: session}
-	//	userRepo := &mongo.UserRepository{Database: session}
-	//	groupRepo := &mongo.GroupRepository{Database: session}
-	//	roleRepo := &mongo.RoleRepository{Database: session}
+	tenantRepo := &mongo.TenantRepository{Database: session}
+	userRepo := &mongo.UserRepository{Database: session}
+	groupRepo := &mongo.GroupRepository{Database: session}
+	roleRepo := &mongo.RoleRepository{Database: session}
+	_ = &model.GroupMemberService{
+		UserRepo:  userRepo,
+		GroupRepo: groupRepo,
+	}
+	_ = &model.TenantProvisioningService{
+		TenantRepo: tenantRepo,
+		UserRepo:   userRepo,
+		RoleRepo:   roleRepo,
+	}
+	_ = &model.AuthenticationService{
+		TenantRepo: tenantRepo,
+		UserRepo:   userRepo,
+	}
+	_ = &model.AuthorizationService{
+		UserRepo:  userRepo,
+		GroupRepo: groupRepo,
+		RoleRepo:  roleRepo,
+	}
 
 	return nil
 }

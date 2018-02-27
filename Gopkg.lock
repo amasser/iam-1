@@ -29,6 +29,18 @@
   revision = "49796115aa4b964c318aad4f3084fdb41e9aa067"
 
 [[projects]]
+  branch = "v2"
+  name = "gopkg.in/mgo.v2"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
+  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+
+[[projects]]
   name = "gopkg.in/urfave/cli.v1"
   packages = ["."]
   revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
@@ -38,7 +50,8 @@
   name = "upper.io/db.v3"
   packages = [
     ".",
-    "internal/immutable"
+    "internal/immutable",
+    "mongo"
   ]
   revision = "bba00b389f7e9cfdd8988e08c2832ab39119d7cf"
   version = "v3.5.2"
@@ -46,6 +59,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2783a017a0d3abc52ada6822e2865d0ac7b44289e15b9328806a109ddd9aff20"
+  inputs-digest = "6988ffc337467685d9d216e3df3ca204638082c37b76bd12195544172672cb8b"
   solver-name = "gps-cdcl"
   solver-version = 1
