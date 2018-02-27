@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/maurofran/iam/internal/app/application"
 	"github.com/maurofran/iam/internal/app/domain/model"
 	"github.com/maurofran/iam/internal/app/ports/adapter/mongo"
 
@@ -56,7 +57,7 @@ func startDaemon(c *cli.Context) error {
 		UserRepo:  userRepo,
 		GroupRepo: groupRepo,
 	}
-	_ = &model.TenantProvisioningService{
+	tenantProvisioningService := &model.TenantProvisioningService{
 		TenantRepo: tenantRepo,
 		UserRepo:   userRepo,
 		RoleRepo:   roleRepo,
@@ -69,6 +70,10 @@ func startDaemon(c *cli.Context) error {
 		UserRepo:  userRepo,
 		GroupRepo: groupRepo,
 		RoleRepo:  roleRepo,
+	}
+	_ = &application.TenantService{
+		TenantRepo:          tenantRepo,
+		ProvisioningService: tenantProvisioningService,
 	}
 
 	return nil

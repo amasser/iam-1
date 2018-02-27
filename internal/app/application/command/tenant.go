@@ -31,9 +31,10 @@ type DeactivateTenant struct {
 
 // OfferInvitation will offer an invitation.
 type OfferInvitation struct {
-	TenantID  string    `json:"tenantId"`
-	ValidFrom time.Time `json:"validFrom,omitempty"`
-	ValidTo   time.Time `json:"validTo,omitempty"`
+	TenantID    string    `json:"tenantId"`
+	Description string    `json:"description"`
+	ValidFrom   time.Time `json:"validFrom,omitempty"`
+	ValidTo     time.Time `json:"validTo,omitempty"`
 }
 
 // WithdrawInvitation will widthraw an invitation.

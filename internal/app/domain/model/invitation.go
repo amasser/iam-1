@@ -40,12 +40,14 @@ func (i *Invitation) identifiedBy(descriptor string) bool {
 	return i.InvitationID == descriptor || i.Description == descriptor
 }
 
-func (i *Invitation) redefineAsOpenEnded() {
+// RedefineAsOpenEnded will change the receiver invitation as open ended.
+func (i *Invitation) RedefineAsOpenEnded() {
 	i.StartingOn = time.Time{}
 	i.Until = time.Time{}
 }
 
-func (i *Invitation) redefineAs(startingOn, until time.Time) error {
+// RedefineAs will change the receiver invitation with supplied parameter.
+func (i *Invitation) RedefineAs(startingOn, until time.Time) error {
 	if err := assert.NotZero(startingOn, "startingOn"); err != nil {
 		return err
 	}
