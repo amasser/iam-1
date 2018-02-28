@@ -70,7 +70,8 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: new(model.AuthorizationService)},
 
 		&inject.Object{Value: new(application.TenantService)},
-		&inject.Object{Value: new(applicatiln.UserService)},
+		&inject.Object{Value: new(application.UserService)},
+		&inject.Object{Value: new(application.GroupService)},
 	)
 	if err != nil {
 		return err
