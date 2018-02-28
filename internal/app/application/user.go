@@ -18,11 +18,7 @@ type UserService struct {
 
 // RegisterUser will register a user.
 func (us *UserService) RegisterUser(cmd command.RegisterUser) error {
-	tenantID, err := model.MakeTenantID(cmd.TenantID)
-	if err != nil {
-		return err
-	}
-	tenant, err := us.TenantRepository.TenantWithID(tenantID)
+	tenant, err := loadTenant(us.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -59,7 +55,7 @@ func (us *UserService) RegisterUser(cmd command.RegisterUser) error {
 
 // ChangeContactInformation will change the contact information.
 func (us *UserService) ChangeContactInformation(cmd command.ChangeContactInformation) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -77,7 +73,7 @@ func (us *UserService) ChangeContactInformation(cmd command.ChangeContactInforma
 
 // ChangeEmailAddress will change e-mail address of user.
 func (us *UserService) ChangeEmailAddress(cmd command.ChangeEmailAddress) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -97,7 +93,7 @@ func (us *UserService) ChangeEmailAddress(cmd command.ChangeEmailAddress) error 
 
 // ChangePostalAddress will change postal address of user.
 func (us *UserService) ChangePostalAddress(cmd command.ChangePostalAddress) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -118,7 +114,7 @@ func (us *UserService) ChangePostalAddress(cmd command.ChangePostalAddress) erro
 
 // ChangePrimaryTelephone will change the primary telephone of user.
 func (us *UserService) ChangePrimaryTelephone(cmd command.ChangePrimaryTelephone) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -138,7 +134,7 @@ func (us *UserService) ChangePrimaryTelephone(cmd command.ChangePrimaryTelephone
 
 // ChangeSecondaryTelephone will change the secondary telephone of user.
 func (us *UserService) ChangeSecondaryTelephone(cmd command.ChangeSecondaryTelephone) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -158,7 +154,7 @@ func (us *UserService) ChangeSecondaryTelephone(cmd command.ChangeSecondaryTelep
 
 // ChangeUserPassword will change user password.
 func (us *UserService) ChangeUserPassword(cmd command.ChangeUserPassword) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -170,7 +166,7 @@ func (us *UserService) ChangeUserPassword(cmd command.ChangeUserPassword) error 
 
 // ChangeUserPersonalName will change the user personal name.
 func (us *UserService) ChangeUserPersonalName(cmd command.ChangeUserPersonalName) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -186,7 +182,7 @@ func (us *UserService) ChangeUserPersonalName(cmd command.ChangeUserPersonalName
 
 // DefineUserEnablement will define the user enablement.
 func (us *UserService) DefineUserEnablement(cmd command.DefineUserEnablement) error {
-	user, err := us.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -200,12 +196,12 @@ func (us *UserService) DefineUserEnablement(cmd command.DefineUserEnablement) er
 	return us.UserRepository.Update(user)
 }
 
-func (us *UserService) loadUser(tenantID, username string) (*model.User, error) {
+func loadUser(repo model.UserRepository, tenantID, username string) (*model.User, error) {
 	theTenantID, err := model.MakeTenantID(tenantID)
 	if err != nil {
 		return nil, err
 	}
-	user, err := us.UserRepository.UserWithUsername(theTenantID, username)
+	user, err := repo.UserWithUsername(theTenantID, username)
 	if err != nil {
 		return nil, err
 	}

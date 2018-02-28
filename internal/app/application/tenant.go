@@ -1,9 +1,14 @@
 package application
 
 import (
+	"errors"
+
 	"github.com/maurofran/iam/internal/app/application/command"
 	"github.com/maurofran/iam/internal/app/domain/model"
 )
+
+// ErrTenantNotFound is returned when no tenant is found.
+var ErrTenantNotFound = errors.New("tenant not found")
 
 // TenantService is the application service for tenants.
 type TenantService struct {
@@ -42,11 +47,7 @@ func (ts *TenantService) ProvisionTenant(cmd command.ProvisionTenant) (string, e
 
 // ActivateTenant will activate a tenant.
 func (ts *TenantService) ActivateTenant(cmd command.ActivateTenant) error {
-	tenantID, err := model.MakeTenantID(cmd.TenantID)
-	if err != nil {
-		return err
-	}
-	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
+	tenant, err := loadTenant(ts.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -56,11 +57,7 @@ func (ts *TenantService) ActivateTenant(cmd command.ActivateTenant) error {
 
 // DeactivateTenant will deactivate a tenant.
 func (ts *TenantService) DeactivateTenant(cmd command.DeactivateTenant) error {
-	tenantID, err := model.MakeTenantID(cmd.TenantID)
-	if err != nil {
-		return err
-	}
-	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
+	tenant, err := loadTenant(ts.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -70,11 +67,7 @@ func (ts *TenantService) DeactivateTenant(cmd command.DeactivateTenant) error {
 
 // OfferInvitation will offer an invitation for tenant.
 func (ts *TenantService) OfferInvitation(cmd command.OfferInvitation) (string, error) {
-	tenantID, err := model.MakeTenantID(cmd.TenantID)
-	if err != nil {
-		return "", err
-	}
-	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
+	tenant, err := loadTenant(ts.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return "", err
 	}
@@ -94,11 +87,7 @@ func (ts *TenantService) OfferInvitation(cmd command.OfferInvitation) (string, e
 
 // WithdrawInvitation will withdraw an invitation for tenant.
 func (ts *TenantService) WithdrawInvitation(cmd command.WithdrawInvitation) error {
-	tenantID, err := model.MakeTenantID(cmd.TenantID)
-	if err != nil {
-		return err
-	}
-	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
+	tenant, err := loadTenant(ts.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -107,4 +96,19 @@ func (ts *TenantService) WithdrawInvitation(cmd command.WithdrawInvitation) erro
 		return err
 	}
 	return ts.TenantRepository.Update(tenant)
+}
+
+func loadTenant(repo model.TenantRepository, tenantID string) (*model.Tenant, error) {
+	aTenantID, err := model.MakeTenantID(tenantID)
+	if err != nil {
+		return nil, err
+	}
+	tenant, err := repo.TenantWithID(aTenantID)
+	if err != nil {
+		return nil, err
+	}
+	if tenant == nil {
+		return nil, ErrTenantNotFound
+	}
+	return tenant, nil
 }

@@ -20,11 +20,7 @@ type GroupService struct {
 
 // ProvisionGroup will provision a new group.
 func (gs *GroupService) ProvisionGroup(cmd command.ProvisionGroup) error {
-	tenantID, err := model.MakeTenantID(cmd.TenantID)
-	if err != nil {
-		return err
-	}
-	tenant, err := gs.TenantRepository.TenantWithID(tenantID)
+	tenant, err := loadTenant(gs.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -37,11 +33,11 @@ func (gs *GroupService) ProvisionGroup(cmd command.ProvisionGroup) error {
 
 // AddGroupToGroup will add a group to an existing group.
 func (gs *GroupService) AddGroupToGroup(cmd command.AddGroupToGroup) error {
-	group, err := gs.loadGroup(cmd.TenantID, cmd.GroupName)
+	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err
 	}
-	otherGroup, err := gs.loadGroup(cmd.TenantID, cmd.ChildGroupName)
+	otherGroup, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.ChildGroupName)
 	if err != nil {
 		return err
 	}
@@ -53,11 +49,11 @@ func (gs *GroupService) AddGroupToGroup(cmd command.AddGroupToGroup) error {
 
 // AddUserToGroup will ad a user to an existing group.
 func (gs *GroupService) AddUserToGroup(cmd command.AddUserToGroup) error {
-	group, err := gs.loadGroup(cmd.TenantID, cmd.GroupName)
+	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err
 	}
-	user, err := gs.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(gs.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -69,11 +65,11 @@ func (gs *GroupService) AddUserToGroup(cmd command.AddUserToGroup) error {
 
 // RemoveGroupFromGroup will remove a group from an existing group.
 func (gs *GroupService) RemoveGroupFromGroup(cmd command.RemoveGroupFromGroup) error {
-	group, err := gs.loadGroup(cmd.TenantID, cmd.GroupName)
+	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err
 	}
-	otherGroup, err := gs.loadGroup(cmd.TenantID, cmd.ChildGroupName)
+	otherGroup, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.ChildGroupName)
 	if err != nil {
 		return err
 	}
@@ -85,11 +81,11 @@ func (gs *GroupService) RemoveGroupFromGroup(cmd command.RemoveGroupFromGroup) e
 
 // RemoveUserFromGroup will remove a user from a group.
 func (gs *GroupService) RemoveUserFromGroup(cmd command.RemoveUserFromGroup) error {
-	group, err := gs.loadGroup(cmd.TenantID, cmd.GroupName)
+	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err
 	}
-	user, err := gs.loadUser(cmd.TenantID, cmd.Username)
+	user, err := loadUser(gs.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
@@ -99,12 +95,12 @@ func (gs *GroupService) RemoveUserFromGroup(cmd command.RemoveUserFromGroup) err
 	return gs.GroupRepository.Update(group)
 }
 
-func (gs *GroupService) loadGroup(tenantID, name string) (*model.Group, error) {
+func loadGroup(repo model.GroupRepository, tenantID, name string) (*model.Group, error) {
 	theTenantID, err := model.MakeTenantID(tenantID)
 	if err != nil {
 		return nil, err
 	}
-	group, err := gs.GroupRepository.GroupNamed(theTenantID, name)
+	group, err := repo.GroupNamed(theTenantID, name)
 	if err != nil {
 		return nil, err
 	}
@@ -112,19 +108,4 @@ func (gs *GroupService) loadGroup(tenantID, name string) (*model.Group, error) {
 		return nil, ErrGroupNotFound
 	}
 	return group, nil
-}
-
-func (gs *GroupService) loadUser(tenantID, username string) (*model.User, error) {
-	theTenantID, err := model.MakeTenantID(tenantID)
-	if err != nil {
-		return nil, err
-	}
-	user, err := gs.UserRepository.UserWithUsername(theTenantID, username)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, ErrUserNotFound
-	}
-	return user, nil
 }

@@ -72,6 +72,7 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: new(application.TenantService)},
 		&inject.Object{Value: new(application.UserService)},
 		&inject.Object{Value: new(application.GroupService)},
+		&inject.Object{Value: new(application.RoleService)},
 	)
 	if err != nil {
 		return err
