@@ -12,8 +12,9 @@ var ErrUserNotFound = errors.New("no user found")
 
 // UserService is the object used to manage user services.
 type UserService struct {
-	TenantRepository model.TenantRepository `inject:""`
-	UserRepository   model.UserRepository   `inject:""`
+	TenantRepository      model.TenantRepository      `inject:""`
+	UserRepository        model.UserRepository        `inject:""`
+	AuthenticationService model.AuthenticationService `inject:""`
 }
 
 // RegisterUser will register a user.
@@ -51,6 +52,15 @@ func (us *UserService) RegisterUser(cmd command.RegisterUser) error {
 		return err
 	}
 	return us.UserRepository.Add(user)
+}
+
+// AuthenticateUser will authenticate a user.
+func (us *UserService) AuthenticateUser(cmd command.AuthenticateUser) (model.UserDescriptor, error) {
+	theTenantID, err := model.MakeTenantID(cmd.TenantID)
+	if err != nil {
+		return model.UserDescriptor{}, err
+	}
+	return us.AuthenticationService.Authenticate(theTenantID, cmd.Username, cmd.Password)
 }
 
 // ChangeContactInformation will change the contact information.
