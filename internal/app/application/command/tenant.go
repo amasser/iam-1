@@ -11,7 +11,7 @@ type ProvisionTenant struct {
 	EmailAddress           string `json:"emailAddress"`
 	PrimaryTelephone       string `json:"primaryTelephone"`
 	SecondaryTelephone     string `json:"secondaryTelephone"`
-	AddressStreetAddress   string `json:"addressStreetAddress"`
+	AddressStreetName      string `json:"addressStreetName"`
 	AddressBuildingNumber  string `json:"addressStreetNumber"`
 	AddressPostalCode      string `json:"addressPostalCode"`
 	AddressTown            string `json:"addressTown"`

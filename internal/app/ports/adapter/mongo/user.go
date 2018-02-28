@@ -10,7 +10,7 @@ const userCollection = "users"
 
 // UserRepository is the implmentation of repository for users.
 type UserRepository struct {
-	Database db.Database
+	Database db.Database `inject:""`
 }
 
 func (r *UserRepository) collection() db.Collection {

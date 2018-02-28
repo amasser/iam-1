@@ -16,7 +16,7 @@ type RegisterUser struct {
 	EmailAddress          string    `json:"emailAddress"`
 	PrimaryTelephone      string    `json:"primaryTelephone"`
 	SecondaryTelephone    string    `json:"secondaryTelephone"`
-	AddressStreetAddress  string    `json:"addressStreetAddress"`
+	AddressStreetName     string    `json:"addressStreetName"`
 	AddressBuildingNumber string    `json:"addressStreetNumber"`
 	AddressPostalCode     string    `json:"addressPostalCode"`
 	AddressTown           string    `json:"addressTown"`
@@ -38,7 +38,7 @@ type ChangeContactInformation struct {
 	EmailAddress          string `json:"emailAddress"`
 	PrimaryTelephone      string `json:"primaryTelephone"`
 	SecondaryTelephone    string `json:"secondaryTelephone"`
-	AddressStreetAddress  string `json:"addressStreetAddress"`
+	AddressStreetName     string `json:"addressStreetName"`
 	AddressBuildingNumber string `json:"addressStreetNumber"`
 	AddressPostalCode     string `json:"addressPostalCode"`
 	AddressTown           string `json:"addressTown"`
@@ -53,15 +53,15 @@ type ChangeEmailAddress struct {
 	EmailAddress string `json:"emailAddress"`
 }
 
-// CahngePrimaryTelephone will change the primary telephone.
-type CahngePrimaryTelephone struct {
+// ChangePrimaryTelephone will change the primary telephone.
+type ChangePrimaryTelephone struct {
 	TenantID         string `json:"tenantId"`
 	Username         string `json:"username"`
 	PrimaryTelephone string `json:"primaryTelephone"`
 }
 
-// CahngeSecondaryTelephone will change the secondary telephone.
-type CahngeSecondaryTelephone struct {
+// ChangeSecondaryTelephone will change the secondary telephone.
+type ChangeSecondaryTelephone struct {
 	TenantID           string `json:"tenantId"`
 	Username           string `json:"username"`
 	SecondaryTelephone string `json:"secondaryTelephone"`
@@ -71,7 +71,7 @@ type CahngeSecondaryTelephone struct {
 type ChangePostalAddress struct {
 	TenantID              string `json:"tenantId"`
 	Username              string `json:"username"`
-	AddressStreetAddress  string `json:"addressStreetAddress"`
+	AddressStreetName     string `json:"addressStreetName"`
 	AddressBuildingNumber string `json:"addressStreetNumber"`
 	AddressPostalCode     string `json:"addressPostalCode"`
 	AddressTown           string `json:"addressTown"`

@@ -10,7 +10,7 @@ const groupCollection = "groups"
 
 // GroupRepository is the repository of group.
 type GroupRepository struct {
-	Database db.Database
+	Database db.Database `inject:""`
 }
 
 func (r *GroupRepository) collection() db.Collection {

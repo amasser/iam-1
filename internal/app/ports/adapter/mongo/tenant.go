@@ -10,7 +10,7 @@ const tenantCollection = "tenants"
 
 // TenantRepository implements the tenant repository interfance.
 type TenantRepository struct {
-	Database db.Database
+	Database db.Database `inject:""`
 }
 
 func (r *TenantRepository) collection() db.Collection {

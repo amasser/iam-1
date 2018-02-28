@@ -314,7 +314,7 @@ func (tps *TenantProvisioningService) registerAdministratorFor(
 		return err
 	}
 	temporaryPassword := password.Generate()
-	person, err := newPerson(administratorName, ContactInformation{
+	person, err := NewPerson(administratorName, ContactInformation{
 		EmailAddress:       emailAddress,
 		PostalAddress:      postalAddress,
 		PrimaryTelephone:   primaryTelephone,

@@ -29,6 +29,26 @@ func (ci ContactInformation) IsZero() bool {
 		ci.SecondaryTelephone.IsZero()
 }
 
+// WithEmailAddress return a new contact information with supplied email address.
+func (ci ContactInformation) WithEmailAddress(emailAddress EmailAddress) (ContactInformation, error) {
+	return MakeContactInformation(ci.PostalAddress, emailAddress, ci.PrimaryTelephone, ci.SecondaryTelephone)
+}
+
+// WithPostalAddress return a new contact information with supplied postal address.
+func (ci ContactInformation) WithPostalAddress(postalAddress PostalAddress) (ContactInformation, error) {
+	return MakeContactInformation(postalAddress, ci.EmailAddress, ci.PrimaryTelephone, ci.SecondaryTelephone)
+}
+
+// WithPrimaryTelephone return a new contact information with changed primary telephone.
+func (ci ContactInformation) WithPrimaryTelephone(primaryTelephone Telephone) (ContactInformation, error) {
+	return MakeContactInformation(ci.PostalAddress, ci.EmailAddress, primaryTelephone, ci.SecondaryTelephone)
+}
+
+// WithSecondaryTelephone return a new contact information with changed secondary telephone.
+func (ci ContactInformation) WithSecondaryTelephone(secondaryTelephone Telephone) (ContactInformation, error) {
+	return MakeContactInformation(ci.PostalAddress, ci.EmailAddress, ci.PrimaryTelephone, secondaryTelephone)
+}
+
 // Person is an entity used in order to provide data about a person.
 type Person struct {
 	Name               FullName           `bson:"name"`
@@ -36,7 +56,7 @@ type Person struct {
 }
 
 // NewPerson will create a new person for supplied data.
-func newPerson(fullName FullName, contactInformation ContactInformation) (*Person, error) {
+func NewPerson(fullName FullName, contactInformation ContactInformation) (*Person, error) {
 	if err := assert.NotZero(fullName, "fullName"); err != nil {
 		return nil, err
 	}

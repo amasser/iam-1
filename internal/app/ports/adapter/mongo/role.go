@@ -10,7 +10,7 @@ const roleCollection = "roles"
 
 // RoleRepository is the MongoDB implementation of role repository.
 type RoleRepository struct {
-	Database db.Database
+	Database db.Database `inject:""`
 }
 
 func (r *RoleRepository) collection() db.Collection {

@@ -7,8 +7,8 @@ import (
 
 // TenantService is the application service for tenants.
 type TenantService struct {
-	TenantRepo          model.TenantRepository
-	ProvisioningService *model.TenantProvisioningService
+	TenantRepository    model.TenantRepository           `inject:""`
+	ProvisioningService *model.TenantProvisioningService `inject:""`
 }
 
 // ProvisionTenant will provision a new tenant with data for supplied command.
@@ -18,34 +18,21 @@ func (ts *TenantService) ProvisionTenant(cmd command.ProvisionTenant) (string, e
 	if err != nil {
 		return "", err
 	}
-	emailAddress, err := model.MakeEmailAddress(cmd.EmailAddress)
+	ci, err := makeContactInformation(cmd.EmailAddress, cmd.AddressStreetName, cmd.AddressBuildingNumber,
+		cmd.AddressPostalCode, cmd.AddressTown, cmd.AddressStateProvince, cmd.AddressCountryCode,
+		cmd.PrimaryTelephone, cmd.SecondaryTelephone)
 	if err != nil {
 		return "", err
 	}
-	postalAddress, err := model.MakePostalAddress(cmd.AddressStreetAddress, cmd.AddressBuildingNumber,
-		cmd.AddressPostalCode, cmd.AddressTown, cmd.AddressStateProvince, cmd.AddressCountryCode)
-	if err != nil {
-		return "", err
-	}
-	primaryTelephone, err := model.MakeTelephone(cmd.PrimaryTelephone)
-	if err != nil {
-		return "", err
-	}
-	secondaryTelephone := model.Telephone("")
-	if cmd.SecondaryTelephone != "" {
-		secondaryTelephone, err = model.MakeTelephone(cmd.SecondaryTelephone)
-		if err != nil {
-			return "", err
-		}
-	}
+
 	tenant, err := ts.ProvisioningService.ProvisionTenant(
 		cmd.TenantName,
 		cmd.TenantDescription,
 		fullName,
-		emailAddress,
-		postalAddress,
-		primaryTelephone,
-		secondaryTelephone,
+		ci.EmailAddress,
+		ci.PostalAddress,
+		ci.PrimaryTelephone,
+		ci.SecondaryTelephone,
 	)
 	if err != nil {
 		return "", err
@@ -59,12 +46,12 @@ func (ts *TenantService) ActivateTenant(cmd command.ActivateTenant) error {
 	if err != nil {
 		return err
 	}
-	tenant, err := ts.TenantRepo.TenantWithID(tenantID)
+	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
 	if err != nil {
 		return err
 	}
 	tenant.Activate()
-	return ts.TenantRepo.Update(tenant)
+	return ts.TenantRepository.Update(tenant)
 }
 
 // DeactivateTenant will deactivate a tenant.
@@ -73,12 +60,12 @@ func (ts *TenantService) DeactivateTenant(cmd command.DeactivateTenant) error {
 	if err != nil {
 		return err
 	}
-	tenant, err := ts.TenantRepo.TenantWithID(tenantID)
+	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
 	if err != nil {
 		return err
 	}
 	tenant.Deactivate()
-	return ts.TenantRepo.Update(tenant)
+	return ts.TenantRepository.Update(tenant)
 }
 
 // OfferInvitation will offer an invitation for tenant.
@@ -87,7 +74,7 @@ func (ts *TenantService) OfferInvitation(cmd command.OfferInvitation) (string, e
 	if err != nil {
 		return "", err
 	}
-	tenant, err := ts.TenantRepo.TenantWithID(tenantID)
+	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
 	if err != nil {
 		return "", err
 	}
@@ -101,7 +88,7 @@ func (ts *TenantService) OfferInvitation(cmd command.OfferInvitation) (string, e
 			return "", err
 		}
 	}
-	err = ts.TenantRepo.Update(tenant)
+	err = ts.TenantRepository.Update(tenant)
 	return invitation.InvitationID, err
 }
 
@@ -111,7 +98,7 @@ func (ts *TenantService) WithdrawInvitation(cmd command.WithdrawInvitation) erro
 	if err != nil {
 		return err
 	}
-	tenant, err := ts.TenantRepo.TenantWithID(tenantID)
+	tenant, err := ts.TenantRepository.TenantWithID(tenantID)
 	if err != nil {
 		return err
 	}
@@ -119,5 +106,5 @@ func (ts *TenantService) WithdrawInvitation(cmd command.WithdrawInvitation) erro
 	if err != nil {
 		return err
 	}
-	return ts.TenantRepo.Update(tenant)
+	return ts.TenantRepository.Update(tenant)
 }
