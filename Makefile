@@ -1,3 +1,3 @@
 build:
-	mkdir -p internal/app/domain/model/event
-	protoc -I=api --go_out=internal/app/domain/model/event api/events.proto
+	mkdir -p internal/app/ports/adapter/grpc
+	protoc -I/usr/local/include -Iapi -I${GOPATH}/src --go_out=plugins=grpc:internal/app/ports/adapter/grpc api/iam.proto

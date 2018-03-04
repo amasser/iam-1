@@ -1,25 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"os"
 
+	"google.golang.org/grpc"
 	"upper.io/db.v3"
+	"upper.io/db.v3/mongo"
 
 	"github.com/maurofran/iam/internal/app/application"
 
 	"github.com/maurofran/iam/internal/app/domain/model"
 
 	"github.com/facebookgo/inject"
-	"github.com/maurofran/iam/internal/app/ports/adapter/mongo"
+	grpc_adapter "github.com/maurofran/iam/internal/app/ports/adapter/grpc"
+	mongo_adapter "github.com/maurofran/iam/internal/app/ports/adapter/mongo"
 
 	"github.com/pkg/errors"
 	cli "gopkg.in/urfave/cli.v1"
-	mongodb "upper.io/db.v3/mongo"
 )
 
 var g inject.Graph
 var mongoDB string
+var grpcPort int
 
 func main() {
 
@@ -35,6 +40,13 @@ func main() {
 			Destination: &mongoDB,
 			EnvVar:      "DB_URL",
 		},
+		cli.IntFlag{
+			Name:        "grpcPort",
+			Value:       3000,
+			Usage:       "Exposes GRPC server at `grpcPort`",
+			Destination: &grpcPort,
+			EnvVar:      "GRPC_PORT",
+		},
 	}
 	app.Before = setupContext
 	app.Action = runDaemon
@@ -47,11 +59,11 @@ func main() {
 }
 
 func setupContext(c *cli.Context) error {
-	url, err := mongodb.ParseURL(mongoDB)
+	url, err := mongo.ParseURL(mongoDB)
 	if err != nil {
 		return errors.Wrapf(err, "Error occurred while parsing URL %s", mongoDB)
 	}
-	session, err := mongodb.Open(url)
+	session, err := mongo.Open(url)
 	if err != nil {
 		return errors.Wrapf(err, "Error occurred while opening connection to %s", mongoDB)
 	}
@@ -59,10 +71,10 @@ func setupContext(c *cli.Context) error {
 	err = g.Provide(
 		&inject.Object{Value: session},
 
-		&inject.Object{Value: new(mongo.TenantRepository)},
-		&inject.Object{Value: new(mongo.UserRepository)},
-		&inject.Object{Value: new(mongo.GroupRepository)},
-		&inject.Object{Value: new(mongo.RoleRepository)},
+		&inject.Object{Value: new(mongo_adapter.TenantRepository)},
+		&inject.Object{Value: new(mongo_adapter.UserRepository)},
+		&inject.Object{Value: new(mongo_adapter.GroupRepository)},
+		&inject.Object{Value: new(mongo_adapter.RoleRepository)},
 
 		&inject.Object{Value: new(model.GroupMemberService)},
 		&inject.Object{Value: new(model.TenantProvisioningService)},
@@ -73,6 +85,8 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: new(application.UserService)},
 		&inject.Object{Value: new(application.GroupService)},
 		&inject.Object{Value: new(application.RoleService)},
+
+		&inject.Object{Value: grpc_adapter.TenantServer},
 	)
 	if err != nil {
 		return err
@@ -81,7 +95,13 @@ func setupContext(c *cli.Context) error {
 }
 
 func runDaemon(c *cli.Context) error {
-	return nil
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	if err != nil {
+		return err
+	}
+	grpcServer := grpc.NewServer()
+	grpc_adapter.RegisterTenantServiceServer(grpcServer, grpc_adapter.TenantServer)
+	return grpcServer.Serve(lis)
 }
 
 func shutdownContext(c *cli.Context) error {

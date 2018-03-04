@@ -1,1 +1,78 @@
 syntax = "proto3";
+
+package iam;
+
+option go_package = "grpc";
+
+// TenantService is the RPC service used to manage tenants.
+service TenantService {
+    rpc ProvisionTenant(ProvisionTenantRequest) returns (ProvisionTenantResponse) {}
+    rpc ActivateTenant(ActivateTenantRequest) returns (ActivateTenantResponse) {}
+    rpc DeactivateTenant(DeactivateTenantRequest) returns (DeactivateTenantResponse) {}
+    rpc OfferInvitation(OfferInvitationRequest) returns (OfferInvitationResponse) {}
+    rpc WithdrawInvitation(WithdrawInvitationRequest) returns (WithdrawInvitationResponse) {}
+}
+
+message ProvisionTenantRequest {
+    string tenant_name = 1;
+    string tenant_description = 2;
+    FullName administrator_name = 3;
+    string email_address = 4;
+    PostalAddress postal_address = 5;
+    string primary_telephone = 6;
+    string secondary_telephone = 7;
+}
+
+message ProvisionTenantResponse {
+    string tenant_id = 1;
+}
+
+message ActivateTenantRequest {
+    string tenant_id = 1;
+}
+
+message ActivateTenantResponse {
+    bool activated = 1;
+}
+
+message DeactivateTenantRequest {
+    string tenant_id = 1;
+}
+
+message DeactivateTenantResponse {
+    bool deactivated = 1;
+}
+
+message OfferInvitationRequest {
+    string tenant_id = 1;
+    string description = 2;
+    int64 start_date = 3;
+    int64 end_date = 4;
+}
+
+message OfferInvitationResponse {
+    string invitation_id = 1;
+}
+
+message WithdrawInvitationRequest {
+    string tenant_id = 1;
+    string invitation_id = 2;
+}
+
+message WithdrawInvitationResponse {
+    bool withdrawn = 1;
+}
+
+message FullName {
+    string first_name = 1;
+    string last_name = 2;
+}
+
+message PostalAddress {
+    string street_name = 1;
+    string building_number = 2;
+    string postal_code = 3;
+    string town = 4;
+    string state_province = 5;
+    string country_code = 6;
+}
