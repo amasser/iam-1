@@ -29,12 +29,18 @@ var (
 )
 
 var g inject.Graph
-var mongoDB string
-var grpcPort int
-var environment string
 
-var database db.Database
-var tenantServer *grpc_adapter.TenantServer
+var (
+	mongoDB     string
+	grpcPort    int
+	environment string
+)
+
+var (
+	database     db.Database
+	tenantServer *grpc_adapter.TenantServer
+	roleServer   *grpc_adapter.RoleServer
+)
 
 func main() {
 	app := cli.NewApp()
@@ -106,6 +112,7 @@ func setupContext(c *cli.Context) error {
 	log.WithField("database", database).Debug("Database connection successful")
 
 	tenantServer = &grpc_adapter.TenantServer{}
+	roleServer = &grpc_adapter.RoleServer{}
 
 	err = g.Provide(
 		&inject.Object{Value: database},
@@ -126,6 +133,7 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: new(application.RoleService)},
 
 		&inject.Object{Value: tenantServer},
+		&inject.Object{Value: roleServer},
 	)
 	if err != nil {
 		return err
@@ -140,6 +148,7 @@ func runDaemon(c *cli.Context) error {
 	}
 	grpcServer := grpc.NewServer()
 	grpc_adapter.RegisterTenantServiceServer(grpcServer, tenantServer)
+	grpc_adapter.RegisterRoleServiceServer(grpcServer, roleServer)
 
 	log.WithField("port", grpcPort).Info("Starting GRPC server")
 
