@@ -1,2 +1,2 @@
 vendor/
-internal/app/domain/model/event
+target/

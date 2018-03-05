@@ -21,6 +21,13 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
+// Injected variables
+var (
+	Version string
+	Commit  string
+	Branch  string
+)
+
 var g inject.Graph
 var mongoDB string
 var grpcPort int
@@ -33,7 +40,11 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "iamd"
 	app.Usage = "Identity and Access Manager Daemon"
-	app.Version = "1.0.0"
+	app.Version = Version
+	app.Metadata = map[string]interface{}{
+		"Commit": Commit,
+		"Branch": Branch,
+	}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "dburl",
