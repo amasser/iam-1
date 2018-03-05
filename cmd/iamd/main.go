@@ -26,8 +26,10 @@ var g inject.Graph
 var mongoDB string
 var grpcPort int
 
-func main() {
+var database db.Database
+var tenantServer grpc_adapter.TenantServer
 
+func main() {
 	app := cli.NewApp()
 	app.Name = "iamd"
 	app.Usage = "Identity and Access Manager Daemon"
@@ -63,13 +65,15 @@ func setupContext(c *cli.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "Error occurred while parsing URL %s", mongoDB)
 	}
-	session, err := mongo.Open(url)
+	database, err = mongo.Open(url)
 	if err != nil {
 		return errors.Wrapf(err, "Error occurred while opening connection to %s", mongoDB)
 	}
 
+	tenantServer = new(grpc_adapter.TenantServer)
+
 	err = g.Provide(
-		&inject.Object{Value: session},
+		&inject.Object{Value: database},
 
 		&inject.Object{Value: new(mongo_adapter.TenantRepository)},
 		&inject.Object{Value: new(mongo_adapter.UserRepository)},
@@ -86,7 +90,7 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: new(application.GroupService)},
 		&inject.Object{Value: new(application.RoleService)},
 
-		&inject.Object{Value: grpc_adapter.TenantServer},
+		&inject.Object{Value: tenantServer},
 	)
 	if err != nil {
 		return err
@@ -100,15 +104,10 @@ func runDaemon(c *cli.Context) error {
 		return err
 	}
 	grpcServer := grpc.NewServer()
-	grpc_adapter.RegisterTenantServiceServer(grpcServer, grpc_adapter.TenantServer)
+	grpc_adapter.RegisterTenantServiceServer(grpcServer, tenantServer)
 	return grpcServer.Serve(lis)
 }
 
 func shutdownContext(c *cli.Context) error {
-	for _, obj := range g.Objects() {
-		if session, ok := obj.Value.(db.Database); ok {
-			return session.Close()
-		}
-	}
-	return nil
+	return database.Close()
 }
