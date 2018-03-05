@@ -14,7 +14,7 @@ type TenantServer struct {
 }
 
 // ProvisionTenant will expose the provision tenant via GRPC.
-func (ts *TenantServer) ProvisionTenant(ctx context.Context, req *ProvisionTenantRequest) (*ProvisionTenantResponse, error) {
+func (ts TenantServer) ProvisionTenant(ctx context.Context, req *ProvisionTenantRequest) (*ProvisionTenantResponse, error) {
 	cmd := command.ProvisionTenant{
 		TenantName:             req.TenantName,
 		TenantDescription:      req.TenantDescription,
@@ -38,7 +38,7 @@ func (ts *TenantServer) ProvisionTenant(ctx context.Context, req *ProvisionTenan
 }
 
 // ActivateTenant will expose the activate tenant via GRPC
-func (ts *TenantServer) ActivateTenant(ctx context.Context, req *ActivateTenantRequest) (*ActivateTenantResponse, error) {
+func (ts TenantServer) ActivateTenant(ctx context.Context, req *ActivateTenantRequest) (*ActivateTenantResponse, error) {
 	cmd := command.ActivateTenant{
 		TenantID: req.TenantId,
 	}
@@ -49,7 +49,7 @@ func (ts *TenantServer) ActivateTenant(ctx context.Context, req *ActivateTenantR
 }
 
 // DeactivateTenant will expose the deactivate tenant via GRPC
-func (ts *TenantServer) DeactivateTenant(ctx context.Context, req *DeactivateTenantRequest) (*DeactivateTenantResponse, error) {
+func (ts TenantServer) DeactivateTenant(ctx context.Context, req *DeactivateTenantRequest) (*DeactivateTenantResponse, error) {
 	cmd := command.DeactivateTenant{
 		TenantID: req.TenantId,
 	}
@@ -60,7 +60,7 @@ func (ts *TenantServer) DeactivateTenant(ctx context.Context, req *DeactivateTen
 }
 
 // OfferInvitation will exposes the offer invitation via GRPC
-func (ts *TenantServer) OfferInvitation(ctx context.Context, req *OfferInvitationRequest) (*OfferInvitationResponse, error) {
+func (ts TenantServer) OfferInvitation(ctx context.Context, req *OfferInvitationRequest) (*OfferInvitationResponse, error) {
 	cmd := command.OfferInvitation{
 		TenantID:    req.TenantId,
 		Description: req.Description,
@@ -79,7 +79,7 @@ func (ts *TenantServer) OfferInvitation(ctx context.Context, req *OfferInvitatio
 }
 
 // WithdrawInvitation will expose the withdraw invitation via GRPC
-func (ts *TenantServer) WithdrawInvitation(ctx context.Context, req *WithdrawInvitationRequest) (*WithdrawInvitationResponse, error) {
+func (ts TenantServer) WithdrawInvitation(ctx context.Context, req *WithdrawInvitationRequest) (*WithdrawInvitationResponse, error) {
 	cmd := command.WithdrawInvitation{
 		TenantID:             req.TenantId,
 		InvitationIdentifier: req.InvitationId,
