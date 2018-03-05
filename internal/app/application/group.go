@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 
 	"github.com/maurofran/iam/internal/app/application/command"
@@ -19,7 +20,7 @@ type GroupService struct {
 }
 
 // ProvisionGroup will provision a new group.
-func (gs *GroupService) ProvisionGroup(cmd command.ProvisionGroup) error {
+func (gs *GroupService) ProvisionGroup(ctx context.Context, cmd command.ProvisionGroup) error {
 	tenant, err := loadTenant(gs.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
@@ -32,7 +33,7 @@ func (gs *GroupService) ProvisionGroup(cmd command.ProvisionGroup) error {
 }
 
 // AddGroupToGroup will add a group to an existing group.
-func (gs *GroupService) AddGroupToGroup(cmd command.AddGroupToGroup) error {
+func (gs *GroupService) AddGroupToGroup(ctx context.Context, cmd command.AddGroupToGroup) error {
 	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func (gs *GroupService) AddGroupToGroup(cmd command.AddGroupToGroup) error {
 }
 
 // AddUserToGroup will ad a user to an existing group.
-func (gs *GroupService) AddUserToGroup(cmd command.AddUserToGroup) error {
+func (gs *GroupService) AddUserToGroup(ctx context.Context, cmd command.AddUserToGroup) error {
 	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err
@@ -64,7 +65,7 @@ func (gs *GroupService) AddUserToGroup(cmd command.AddUserToGroup) error {
 }
 
 // RemoveGroupFromGroup will remove a group from an existing group.
-func (gs *GroupService) RemoveGroupFromGroup(cmd command.RemoveGroupFromGroup) error {
+func (gs *GroupService) RemoveGroupFromGroup(ctx context.Context, cmd command.RemoveGroupFromGroup) error {
 	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err
@@ -80,7 +81,7 @@ func (gs *GroupService) RemoveGroupFromGroup(cmd command.RemoveGroupFromGroup) e
 }
 
 // RemoveUserFromGroup will remove a user from a group.
-func (gs *GroupService) RemoveUserFromGroup(cmd command.RemoveUserFromGroup) error {
+func (gs *GroupService) RemoveUserFromGroup(ctx context.Context, cmd command.RemoveUserFromGroup) error {
 	group, err := loadGroup(gs.GroupRepository, cmd.TenantID, cmd.GroupName)
 	if err != nil {
 		return err

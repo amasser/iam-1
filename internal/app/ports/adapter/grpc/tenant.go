@@ -1,11 +1,11 @@
 package grpc
 
 import (
+	"context"
 	"time"
 
 	"github.com/maurofran/iam/internal/app/application"
 	"github.com/maurofran/iam/internal/app/application/command"
-	context "golang.org/x/net/context"
 )
 
 // TenantServer is the GRPC server for tenant server.
@@ -30,7 +30,7 @@ func (ts TenantServer) ProvisionTenant(ctx context.Context, req *ProvisionTenant
 		AddressStateProvince:   req.PostalAddress.StateProvince,
 		AddressCountryCode:     req.PostalAddress.CountryCode,
 	}
-	res, err := ts.TenantService.ProvisionTenant(cmd)
+	res, err := ts.TenantService.ProvisionTenant(ctx, cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (ts TenantServer) ActivateTenant(ctx context.Context, req *ActivateTenantRe
 	cmd := command.ActivateTenant{
 		TenantID: req.TenantId,
 	}
-	if err := ts.TenantService.ActivateTenant(cmd); err != nil {
+	if err := ts.TenantService.ActivateTenant(ctx, cmd); err != nil {
 		return nil, err
 	}
 	return &ActivateTenantResponse{Activated: true}, nil
@@ -53,7 +53,7 @@ func (ts TenantServer) DeactivateTenant(ctx context.Context, req *DeactivateTena
 	cmd := command.DeactivateTenant{
 		TenantID: req.TenantId,
 	}
-	if err := ts.TenantService.DeactivateTenant(cmd); err != nil {
+	if err := ts.TenantService.DeactivateTenant(ctx, cmd); err != nil {
 		return nil, err
 	}
 	return &DeactivateTenantResponse{Deactivated: true}, nil
@@ -71,7 +71,7 @@ func (ts TenantServer) OfferInvitation(ctx context.Context, req *OfferInvitation
 	if req.EndDate != 0 {
 		cmd.ValidTo = time.Unix(req.EndDate, 0)
 	}
-	res, err := ts.TenantService.OfferInvitation(cmd)
+	res, err := ts.TenantService.OfferInvitation(ctx, cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (ts TenantServer) WithdrawInvitation(ctx context.Context, req *WithdrawInvi
 		TenantID:             req.TenantId,
 		InvitationIdentifier: req.InvitationId,
 	}
-	if err := ts.TenantService.WithdrawInvitation(cmd); err != nil {
+	if err := ts.TenantService.WithdrawInvitation(ctx, cmd); err != nil {
 		return nil, err
 	}
 	return &WithdrawInvitationResponse{Withdrawn: true}, nil
