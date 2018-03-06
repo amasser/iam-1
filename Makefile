@@ -19,6 +19,7 @@ all: clean protoc linux darwin windows
 
 protoc:
 	mkdir -p internal/app/ports/adapter/grpc; \
+	rm internal/app/ports/adapter/grpc/*.pb.go; \
 	protoc -I/usr/local/include -Iapi -I${GOPATH}/src --go_out=plugins=grpc:internal/app/ports/adapter/grpc api/*.proto
 
 linux: protoc

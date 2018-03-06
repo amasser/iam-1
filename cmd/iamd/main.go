@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"google.golang.org/grpc"
 	"upper.io/db.v3"
@@ -38,7 +41,9 @@ var (
 
 var (
 	database     db.Database
+	grpcServer   *grpc.Server
 	tenantServer *grpc_adapter.TenantServer
+	groupServer  *grpc_adapter.GroupServer
 	roleServer   *grpc_adapter.RoleServer
 )
 
@@ -84,32 +89,21 @@ func main() {
 }
 
 func setupContext(c *cli.Context) error {
-	switch environment {
-	case "dev", "test":
-		log.SetFormatter(&log.TextFormatter{})
-		log.SetLevel(log.DebugLevel)
-	case "qas":
-		log.SetFormatter(&log.TextFormatter{})
-		log.SetLevel(log.InfoLevel)
-	case "prod":
-		log.SetFormatter(&log.JSONFormatter{})
-		log.SetLevel(log.ErrorLevel)
-	}
-	log.SetOutput(os.Stdout)
+	setupLogging()
 
-	log.WithField("database", database).Debug("Trying to parse database URL")
+	log.WithField("database", mongoDB).Debug("Trying to parse database URL")
 	url, err := mongo.ParseURL(mongoDB)
 	if err != nil {
 		log.WithError(err).WithField("database", mongoDB).Error("An error occurred parsing database URL")
 		return err
 	}
-	log.WithField("database", database).Info("Connecting to database")
+	log.WithField("database", mongoDB).Info("Connecting to database")
 	database, err = mongo.Open(url)
 	if err != nil {
 		log.WithError(err).WithField("database", database).Error("An error occurred connecting to database")
 		return err
 	}
-	log.WithField("database", database).Debug("Database connection successful")
+	log.WithField("database", mongoDB).Debug("Database connection successful")
 
 	tenantServer = &grpc_adapter.TenantServer{}
 	roleServer = &grpc_adapter.RoleServer{}
@@ -133,6 +127,7 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: new(application.RoleService)},
 
 		&inject.Object{Value: tenantServer},
+		&inject.Object{Value: groupServer},
 		&inject.Object{Value: roleServer},
 	)
 	if err != nil {
@@ -146,18 +141,22 @@ func runDaemon(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer = grpc.NewServer()
 	grpc_adapter.RegisterTenantServiceServer(grpcServer, tenantServer)
+	grpc_adapter.RegisterGroupServiceServer(grpcServer, groupServer)
 	grpc_adapter.RegisterRoleServiceServer(grpcServer, roleServer)
 
 	log.WithField("port", grpcPort).Info("Starting GRPC server")
 
+	go signalHandler()
+
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.WithError(err).Error("An error occurred while starting GRPC server")
+
 		return err
 	}
-	log.Debug("Shutting down GRPC server")
+
 	return nil
 }
 
@@ -172,4 +171,45 @@ func shutdownContext(c *cli.Context) error {
 	}
 	log.Debug("Connection correctly shut down")
 	return nil
+}
+
+func setupLogging() {
+	switch environment {
+	case "dev", "test":
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetLevel(log.DebugLevel)
+	case "qas":
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetLevel(log.InfoLevel)
+	case "prod":
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetLevel(log.ErrorLevel)
+	}
+	log.SetOutput(os.Stdout)
+}
+
+func signalHandler() {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan,
+		syscall.SIGTERM, syscall.SIGINT, syscall.SIGUSR1,
+		syscall.SIGTTIN, syscall.SIGTTOU,
+		syscall.SIGUSR2)
+
+	for {
+		select {
+		case sig := <-signalChan:
+			switch sig {
+			case syscall.SIGINT:
+				log.Warn("SIGINT received, starting graceful shutdown")
+				grpcServer.GracefulStop()
+			case syscall.SIGTERM:
+				log.Warn("SIGTERM received, shutting down immediately")
+				grpcServer.Stop()
+			default:
+				log.WithField("signal", sig).Info("ignoring unknown signal")
+			}
+		default:
+			time.Sleep(time.Second)
+		}
+	}
 }

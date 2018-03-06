@@ -10,7 +10,7 @@ import (
 
 // RoleServer will provide the GRPC server used to manager roles.
 type RoleServer struct {
-	RoleService *application.RoleService `inject=""`
+	RoleService *application.RoleService `inject:""`
 }
 
 // ProvisionRole will provide the provisioning of role through GRPC

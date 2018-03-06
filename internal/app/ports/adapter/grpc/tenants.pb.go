@@ -30,7 +30,7 @@ type ProvisionTenantRequest struct {
 func (m *ProvisionTenantRequest) Reset()                    { *m = ProvisionTenantRequest{} }
 func (m *ProvisionTenantRequest) String() string            { return proto.CompactTextString(m) }
 func (*ProvisionTenantRequest) ProtoMessage()               {}
-func (*ProvisionTenantRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+func (*ProvisionTenantRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
 
 func (m *ProvisionTenantRequest) GetTenantName() string {
 	if m != nil {
@@ -88,7 +88,7 @@ type ProvisionTenantResponse struct {
 func (m *ProvisionTenantResponse) Reset()                    { *m = ProvisionTenantResponse{} }
 func (m *ProvisionTenantResponse) String() string            { return proto.CompactTextString(m) }
 func (*ProvisionTenantResponse) ProtoMessage()               {}
-func (*ProvisionTenantResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{1} }
+func (*ProvisionTenantResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{1} }
 
 func (m *ProvisionTenantResponse) GetTenantId() string {
 	if m != nil {
@@ -104,7 +104,7 @@ type ActivateTenantRequest struct {
 func (m *ActivateTenantRequest) Reset()                    { *m = ActivateTenantRequest{} }
 func (m *ActivateTenantRequest) String() string            { return proto.CompactTextString(m) }
 func (*ActivateTenantRequest) ProtoMessage()               {}
-func (*ActivateTenantRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{2} }
+func (*ActivateTenantRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
 
 func (m *ActivateTenantRequest) GetTenantId() string {
 	if m != nil {
@@ -120,7 +120,7 @@ type ActivateTenantResponse struct {
 func (m *ActivateTenantResponse) Reset()                    { *m = ActivateTenantResponse{} }
 func (m *ActivateTenantResponse) String() string            { return proto.CompactTextString(m) }
 func (*ActivateTenantResponse) ProtoMessage()               {}
-func (*ActivateTenantResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{3} }
+func (*ActivateTenantResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{3} }
 
 func (m *ActivateTenantResponse) GetActivated() bool {
 	if m != nil {
@@ -136,7 +136,7 @@ type DeactivateTenantRequest struct {
 func (m *DeactivateTenantRequest) Reset()                    { *m = DeactivateTenantRequest{} }
 func (m *DeactivateTenantRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeactivateTenantRequest) ProtoMessage()               {}
-func (*DeactivateTenantRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{4} }
+func (*DeactivateTenantRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{4} }
 
 func (m *DeactivateTenantRequest) GetTenantId() string {
 	if m != nil {
@@ -152,7 +152,7 @@ type DeactivateTenantResponse struct {
 func (m *DeactivateTenantResponse) Reset()                    { *m = DeactivateTenantResponse{} }
 func (m *DeactivateTenantResponse) String() string            { return proto.CompactTextString(m) }
 func (*DeactivateTenantResponse) ProtoMessage()               {}
-func (*DeactivateTenantResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{5} }
+func (*DeactivateTenantResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{5} }
 
 func (m *DeactivateTenantResponse) GetDeactivated() bool {
 	if m != nil {
@@ -171,7 +171,7 @@ type OfferInvitationRequest struct {
 func (m *OfferInvitationRequest) Reset()                    { *m = OfferInvitationRequest{} }
 func (m *OfferInvitationRequest) String() string            { return proto.CompactTextString(m) }
 func (*OfferInvitationRequest) ProtoMessage()               {}
-func (*OfferInvitationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{6} }
+func (*OfferInvitationRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{6} }
 
 func (m *OfferInvitationRequest) GetTenantId() string {
 	if m != nil {
@@ -208,7 +208,7 @@ type OfferInvitationResponse struct {
 func (m *OfferInvitationResponse) Reset()                    { *m = OfferInvitationResponse{} }
 func (m *OfferInvitationResponse) String() string            { return proto.CompactTextString(m) }
 func (*OfferInvitationResponse) ProtoMessage()               {}
-func (*OfferInvitationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{7} }
+func (*OfferInvitationResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{7} }
 
 func (m *OfferInvitationResponse) GetInvitationId() string {
 	if m != nil {
@@ -225,7 +225,7 @@ type WithdrawInvitationRequest struct {
 func (m *WithdrawInvitationRequest) Reset()                    { *m = WithdrawInvitationRequest{} }
 func (m *WithdrawInvitationRequest) String() string            { return proto.CompactTextString(m) }
 func (*WithdrawInvitationRequest) ProtoMessage()               {}
-func (*WithdrawInvitationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{8} }
+func (*WithdrawInvitationRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{8} }
 
 func (m *WithdrawInvitationRequest) GetTenantId() string {
 	if m != nil {
@@ -248,7 +248,7 @@ type WithdrawInvitationResponse struct {
 func (m *WithdrawInvitationResponse) Reset()                    { *m = WithdrawInvitationResponse{} }
 func (m *WithdrawInvitationResponse) String() string            { return proto.CompactTextString(m) }
 func (*WithdrawInvitationResponse) ProtoMessage()               {}
-func (*WithdrawInvitationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{9} }
+func (*WithdrawInvitationResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{9} }
 
 func (m *WithdrawInvitationResponse) GetWithdrawn() bool {
 	if m != nil {
@@ -265,7 +265,7 @@ type FullName struct {
 func (m *FullName) Reset()                    { *m = FullName{} }
 func (m *FullName) String() string            { return proto.CompactTextString(m) }
 func (*FullName) ProtoMessage()               {}
-func (*FullName) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{10} }
+func (*FullName) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{10} }
 
 func (m *FullName) GetFirstName() string {
 	if m != nil {
@@ -293,7 +293,7 @@ type PostalAddress struct {
 func (m *PostalAddress) Reset()                    { *m = PostalAddress{} }
 func (m *PostalAddress) String() string            { return proto.CompactTextString(m) }
 func (*PostalAddress) ProtoMessage()               {}
-func (*PostalAddress) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{11} }
+func (*PostalAddress) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{11} }
 
 func (m *PostalAddress) GetStreetName() string {
 	if m != nil {
@@ -556,9 +556,9 @@ var _TenantService_serviceDesc = grpc1.ServiceDesc{
 	Metadata: "tenants.proto",
 }
 
-func init() { proto.RegisterFile("tenants.proto", fileDescriptor1) }
+func init() { proto.RegisterFile("tenants.proto", fileDescriptor2) }
 
-var fileDescriptor1 = []byte{
+var fileDescriptor2 = []byte{
 	// 691 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x55, 0xe1, 0x4a, 0x1b, 0x4b,
 	0x14, 0x36, 0x26, 0x57, 0xb3, 0x27, 0x6e, 0xd4, 0xb9, 0x5c, 0x8d, 0x89, 0x5e, 0xbd, 0x2b, 0x97,
