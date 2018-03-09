@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 
 	"github.com/maurofran/iam/internal/app/application/command"
@@ -20,7 +21,7 @@ type RoleService struct {
 }
 
 // ProvisionRole will provision a new role.
-func (rs *RoleService) ProvisionRole(cmd command.ProvisionRole) error {
+func (rs *RoleService) ProvisionRole(ctx context.Context, cmd command.ProvisionRole) error {
 	tenant, err := loadTenant(rs.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
@@ -33,7 +34,7 @@ func (rs *RoleService) ProvisionRole(cmd command.ProvisionRole) error {
 }
 
 // AssignUserToRole will assign a user to a role.
-func (rs *RoleService) AssignUserToRole(cmd command.AssignUserToRole) error {
+func (rs *RoleService) AssignUserToRole(ctx context.Context, cmd command.AssignUserToRole) error {
 	role, err := loadRole(rs.RoleRepository, cmd.TenantID, cmd.RoleName)
 	if err != nil {
 		return err
@@ -49,7 +50,7 @@ func (rs *RoleService) AssignUserToRole(cmd command.AssignUserToRole) error {
 }
 
 // UnassignUserFromRole will remove a user from a role.
-func (rs *RoleService) UnassignUserFromRole(cmd command.UnassignUserFromRole) error {
+func (rs *RoleService) UnassignUserFromRole(ctx context.Context, cmd command.UnassignUserFromRole) error {
 	role, err := loadRole(rs.RoleRepository, cmd.TenantID, cmd.RoleName)
 	if err != nil {
 		return err
@@ -65,7 +66,7 @@ func (rs *RoleService) UnassignUserFromRole(cmd command.UnassignUserFromRole) er
 }
 
 // AssignGroupToRole will assign a group to a role.
-func (rs *RoleService) AssignGroupToRole(cmd command.AssignGroupToRole) error {
+func (rs *RoleService) AssignGroupToRole(ctx context.Context, cmd command.AssignGroupToRole) error {
 	role, err := loadRole(rs.RoleRepository, cmd.TenantID, cmd.RoleName)
 	if err != nil {
 		return err
@@ -81,7 +82,7 @@ func (rs *RoleService) AssignGroupToRole(cmd command.AssignGroupToRole) error {
 }
 
 // UnassignGroupFromRole will unassign a group from a role.
-func (rs *RoleService) UnassignGroupFromRole(cmd command.UnassignGroupFromRole) error {
+func (rs *RoleService) UnassignGroupFromRole(ctx context.Context, cmd command.UnassignGroupFromRole) error {
 	role, err := loadRole(rs.RoleRepository, cmd.TenantID, cmd.RoleName)
 	if err != nil {
 		return err

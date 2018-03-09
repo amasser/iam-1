@@ -37,6 +37,10 @@ func (t TenantID) IsZero() bool {
 	return t == ""
 }
 
+func (t TenantID) String() string {
+	return string(t)
+}
+
 // TenantRepository is the interface of virtual collection of tenants.
 type TenantRepository interface {
 	Add(*Tenant) error

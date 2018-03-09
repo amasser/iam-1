@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 
 	"github.com/maurofran/iam/internal/app/application/command"
@@ -18,7 +19,7 @@ type UserService struct {
 }
 
 // RegisterUser will register a user.
-func (us *UserService) RegisterUser(cmd command.RegisterUser) error {
+func (us *UserService) RegisterUser(ctx context.Context, cmd command.RegisterUser) error {
 	tenant, err := loadTenant(us.TenantRepository, cmd.TenantID)
 	if err != nil {
 		return err
@@ -55,7 +56,7 @@ func (us *UserService) RegisterUser(cmd command.RegisterUser) error {
 }
 
 // AuthenticateUser will authenticate a user.
-func (us *UserService) AuthenticateUser(cmd command.AuthenticateUser) (model.UserDescriptor, error) {
+func (us *UserService) AuthenticateUser(ctx context.Context, cmd command.AuthenticateUser) (model.UserDescriptor, error) {
 	theTenantID, err := model.MakeTenantID(cmd.TenantID)
 	if err != nil {
 		return model.UserDescriptor{}, err
@@ -64,7 +65,7 @@ func (us *UserService) AuthenticateUser(cmd command.AuthenticateUser) (model.Use
 }
 
 // ChangeContactInformation will change the contact information.
-func (us *UserService) ChangeContactInformation(cmd command.ChangeContactInformation) error {
+func (us *UserService) ChangeContactInformation(ctx context.Context, cmd command.ChangeContactInformation) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
@@ -82,7 +83,7 @@ func (us *UserService) ChangeContactInformation(cmd command.ChangeContactInforma
 }
 
 // ChangeEmailAddress will change e-mail address of user.
-func (us *UserService) ChangeEmailAddress(cmd command.ChangeEmailAddress) error {
+func (us *UserService) ChangeEmailAddress(ctx context.Context, cmd command.ChangeEmailAddress) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
@@ -102,7 +103,7 @@ func (us *UserService) ChangeEmailAddress(cmd command.ChangeEmailAddress) error 
 }
 
 // ChangePostalAddress will change postal address of user.
-func (us *UserService) ChangePostalAddress(cmd command.ChangePostalAddress) error {
+func (us *UserService) ChangePostalAddress(ctx context.Context, cmd command.ChangePostalAddress) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
@@ -123,7 +124,7 @@ func (us *UserService) ChangePostalAddress(cmd command.ChangePostalAddress) erro
 }
 
 // ChangePrimaryTelephone will change the primary telephone of user.
-func (us *UserService) ChangePrimaryTelephone(cmd command.ChangePrimaryTelephone) error {
+func (us *UserService) ChangePrimaryTelephone(ctx context.Context, cmd command.ChangePrimaryTelephone) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
@@ -143,7 +144,7 @@ func (us *UserService) ChangePrimaryTelephone(cmd command.ChangePrimaryTelephone
 }
 
 // ChangeSecondaryTelephone will change the secondary telephone of user.
-func (us *UserService) ChangeSecondaryTelephone(cmd command.ChangeSecondaryTelephone) error {
+func (us *UserService) ChangeSecondaryTelephone(ctx context.Context, cmd command.ChangeSecondaryTelephone) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
@@ -163,19 +164,19 @@ func (us *UserService) ChangeSecondaryTelephone(cmd command.ChangeSecondaryTelep
 }
 
 // ChangeUserPassword will change user password.
-func (us *UserService) ChangeUserPassword(cmd command.ChangeUserPassword) error {
+func (us *UserService) ChangeUserPassword(ctx context.Context, cmd command.ChangeUserPassword) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
 	}
-	if err := user.ChangePassword(cmd.CurentPassword, cmd.ChangedPassword); err != nil {
+	if err := user.ChangePassword(cmd.CurrentPassword, cmd.ChangedPassword); err != nil {
 		return err
 	}
 	return us.UserRepository.Update(user)
 }
 
 // ChangeUserPersonalName will change the user personal name.
-func (us *UserService) ChangeUserPersonalName(cmd command.ChangeUserPersonalName) error {
+func (us *UserService) ChangeUserPersonalName(ctx context.Context, cmd command.ChangeUserPersonalName) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err
@@ -191,7 +192,7 @@ func (us *UserService) ChangeUserPersonalName(cmd command.ChangeUserPersonalName
 }
 
 // DefineUserEnablement will define the user enablement.
-func (us *UserService) DefineUserEnablement(cmd command.DefineUserEnablement) error {
+func (us *UserService) DefineUserEnablement(ctx context.Context, cmd command.DefineUserEnablement) error {
 	user, err := loadUser(us.UserRepository, cmd.TenantID, cmd.Username)
 	if err != nil {
 		return err

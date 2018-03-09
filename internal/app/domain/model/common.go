@@ -34,6 +34,10 @@ func (e EmailAddress) IsZero() bool {
 	return e == ""
 }
 
+func (e EmailAddress) String() string {
+	return string(e)
+}
+
 // Telephone is the value object representing a telephone number.
 //
 // The default value of Telephone can be used to represent an empty telephone number.

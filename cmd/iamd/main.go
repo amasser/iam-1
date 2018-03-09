@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"google.golang.org/grpc"
 	"upper.io/db.v3"
@@ -18,20 +20,43 @@ import (
 	grpc_adapter "github.com/maurofran/iam/internal/app/ports/adapter/grpc"
 	mongo_adapter "github.com/maurofran/iam/internal/app/ports/adapter/mongo"
 
-	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
+// Injected variables
+var (
+	Version string
+	Commit  string
+	Branch  string
+)
+
 var g inject.Graph
-var mongoDB string
-var grpcPort int
+
+var (
+	mongoDB     string
+	grpcPort    int
+	environment string
+)
+
+var (
+	database     db.Database
+	grpcServer   *grpc.Server
+	tenantServer *grpc_adapter.TenantServer
+	groupServer  *grpc_adapter.GroupServer
+	roleServer   *grpc_adapter.RoleServer
+	userServer   *grpc_adapter.UserServer
+)
 
 func main() {
-
 	app := cli.NewApp()
 	app.Name = "iamd"
 	app.Usage = "Identity and Access Manager Daemon"
-	app.Version = "1.0.0"
+	app.Version = Version
+	app.Metadata = map[string]interface{}{
+		"Commit": Commit,
+		"Branch": Branch,
+	}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "dburl",
@@ -47,6 +72,12 @@ func main() {
 			Destination: &grpcPort,
 			EnvVar:      "GRPC_PORT",
 		},
+		cli.StringFlag{
+			Name:        "environment",
+			Usage:       "Provide the environment: dev, test, qas, prod",
+			Destination: &environment,
+			EnvVar:      "ENVIRONMENT",
+		},
 	}
 	app.Before = setupContext
 	app.Action = runDaemon
@@ -59,17 +90,27 @@ func main() {
 }
 
 func setupContext(c *cli.Context) error {
+	setupLogging()
+
+	log.WithField("database", mongoDB).Debug("Trying to parse database URL")
 	url, err := mongo.ParseURL(mongoDB)
 	if err != nil {
-		return errors.Wrapf(err, "Error occurred while parsing URL %s", mongoDB)
+		log.WithError(err).WithField("database", mongoDB).Error("An error occurred parsing database URL")
+		return err
 	}
-	session, err := mongo.Open(url)
+	log.WithField("database", mongoDB).Info("Connecting to database")
+	database, err = mongo.Open(url)
 	if err != nil {
-		return errors.Wrapf(err, "Error occurred while opening connection to %s", mongoDB)
+		log.WithError(err).WithField("database", database).Error("An error occurred connecting to database")
+		return err
 	}
+	log.WithField("database", mongoDB).Debug("Database connection successful")
+
+	tenantServer = &grpc_adapter.TenantServer{}
+	roleServer = &grpc_adapter.RoleServer{}
 
 	err = g.Provide(
-		&inject.Object{Value: session},
+		&inject.Object{Value: database},
 
 		&inject.Object{Value: new(mongo_adapter.TenantRepository)},
 		&inject.Object{Value: new(mongo_adapter.UserRepository)},
@@ -86,7 +127,10 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: new(application.GroupService)},
 		&inject.Object{Value: new(application.RoleService)},
 
-		&inject.Object{Value: grpc_adapter.TenantServer},
+		&inject.Object{Value: tenantServer},
+		&inject.Object{Value: groupServer},
+		&inject.Object{Value: roleServer},
+		&inject.Object{Value: userServer},
 	)
 	if err != nil {
 		return err
@@ -99,16 +143,76 @@ func runDaemon(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	grpcServer := grpc.NewServer()
-	grpc_adapter.RegisterTenantServiceServer(grpcServer, grpc_adapter.TenantServer)
-	return grpcServer.Serve(lis)
+	grpcServer = grpc.NewServer()
+	grpc_adapter.RegisterTenantServiceServer(grpcServer, tenantServer)
+	grpc_adapter.RegisterGroupServiceServer(grpcServer, groupServer)
+	grpc_adapter.RegisterRoleServiceServer(grpcServer, roleServer)
+	grpc_adapter.RegisterUserServiceServer(grpcServer, userServer)
+
+	log.WithField("port", grpcPort).Info("Starting GRPC server")
+
+	go signalHandler()
+
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		log.WithError(err).Error("An error occurred while starting GRPC server")
+
+		return err
+	}
+
+	return nil
 }
 
 func shutdownContext(c *cli.Context) error {
-	for _, obj := range g.Objects() {
-		if session, ok := obj.Value.(db.Database); ok {
-			return session.Close()
+	if database == nil {
+		return nil
+	}
+	log.WithField("database", mongoDB).Debug("Shutting down connection")
+	if err := database.Close(); err != nil {
+		log.WithError(err).Error("An error occurred while closing connection")
+		return err
+	}
+	log.Debug("Connection correctly shut down")
+	return nil
+}
+
+func setupLogging() {
+	switch environment {
+	case "dev", "test":
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetLevel(log.DebugLevel)
+	case "qas":
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetLevel(log.InfoLevel)
+	case "prod":
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetLevel(log.ErrorLevel)
+	}
+	log.SetOutput(os.Stdout)
+}
+
+func signalHandler() {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan,
+		syscall.SIGTERM, syscall.SIGINT, syscall.SIGUSR1,
+		syscall.SIGTTIN, syscall.SIGTTOU,
+		syscall.SIGUSR2)
+
+	for {
+		select {
+		case sig := <-signalChan:
+			switch sig {
+			case syscall.SIGINT:
+				log.Warn("SIGINT received, starting graceful shutdown")
+				grpcServer.GracefulStop()
+			case syscall.SIGTERM:
+				log.Warn("SIGTERM received, shutting down immediately")
+				grpcServer.Stop()
+			default:
+				log.WithField("signal", sig).Info("ignoring unknown signal")
+			}
+		default:
+			time.Sleep(time.Second)
 		}
 	}
-	return nil
 }

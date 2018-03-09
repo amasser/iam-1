@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package iam;
+
+option go_package = "grpc";
+
+// RoleService is the RPC service used to manage tenants' roles.
+service RoleService {
+    rpc ProvisionRole(ProvisionRoleRequest) returns (ProvisionRoleResponse) {}
+    rpc AssignUserToRole(AssignUserToRoleRequest) returns (AssignUserToRoleResponse) {}
+    rpc UnassignUserFromRole(UnassignUserFromRoleRequest) returns (UnassignUserFromRoleResponse) {}
+    rpc AssignGroupToRole(AssignGroupToRoleRequest) returns (AssignGroupToRoleResponse) {}
+    rpc UnassignGroupFromRole(UnassignGroupFromRoleRequest) returns (UnassignGroupFromRoleResponse) {}
+}
+
+/*
+ * Messages for roles.
+ */
+
+message ProvisionRoleRequest {
+    string tenant_id = 1;
+    string name = 2;
+    string description = 3;
+    bool supports_nesting = 4;
+}
+
+message ProvisionRoleResponse {}
+
+message AssignUserToRoleRequest {
+    string tenant_id = 1;
+    string role_name = 2;
+    string username = 3;
+}
+
+message AssignUserToRoleResponse {}
+
+message UnassignUserFromRoleRequest {
+    string tenant_id = 1;
+    string role_name = 2;
+    string username = 3;
+}
+
+message UnassignUserFromRoleResponse {}
+
+message AssignGroupToRoleRequest {
+    string tenant_id = 1;
+    string role_name = 2;
+    string group_name = 3;
+}
+
+message AssignGroupToRoleResponse {}
+
+message UnassignGroupFromRoleRequest {
+    string tenant_id = 1;
+    string role_name = 2;
+    string group_name = 3;
+}
+
+message UnassignGroupFromRoleResponse {}
