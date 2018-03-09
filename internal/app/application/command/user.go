@@ -83,7 +83,7 @@ type ChangePostalAddress struct {
 type ChangeUserPassword struct {
 	TenantID        string `json:"tenantId"`
 	Username        string `json:"username"`
-	CurentPassword  string `json:"currentPassword"`
+	CurrentPassword string `json:"currentPassword"`
 	ChangedPassword string `json:"changedPassword"`
 }
 

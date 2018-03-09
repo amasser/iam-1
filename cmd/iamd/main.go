@@ -45,6 +45,7 @@ var (
 	tenantServer *grpc_adapter.TenantServer
 	groupServer  *grpc_adapter.GroupServer
 	roleServer   *grpc_adapter.RoleServer
+	userServer   *grpc_adapter.UserServer
 )
 
 func main() {
@@ -129,6 +130,7 @@ func setupContext(c *cli.Context) error {
 		&inject.Object{Value: tenantServer},
 		&inject.Object{Value: groupServer},
 		&inject.Object{Value: roleServer},
+		&inject.Object{Value: userServer},
 	)
 	if err != nil {
 		return err
@@ -145,6 +147,7 @@ func runDaemon(c *cli.Context) error {
 	grpc_adapter.RegisterTenantServiceServer(grpcServer, tenantServer)
 	grpc_adapter.RegisterGroupServiceServer(grpcServer, groupServer)
 	grpc_adapter.RegisterRoleServiceServer(grpcServer, roleServer)
+	grpc_adapter.RegisterUserServiceServer(grpcServer, userServer)
 
 	log.WithField("port", grpcPort).Info("Starting GRPC server")
 

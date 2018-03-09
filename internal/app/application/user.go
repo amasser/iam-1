@@ -169,7 +169,7 @@ func (us *UserService) ChangeUserPassword(ctx context.Context, cmd command.Chang
 	if err != nil {
 		return err
 	}
-	if err := user.ChangePassword(cmd.CurentPassword, cmd.ChangedPassword); err != nil {
+	if err := user.ChangePassword(cmd.CurrentPassword, cmd.ChangedPassword); err != nil {
 		return err
 	}
 	return us.UserRepository.Update(user)

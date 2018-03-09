@@ -8,6 +8,7 @@ It is generated from these files:
 	groups.proto
 	roles.proto
 	tenants.proto
+	users.proto
 
 It has these top-level messages:
 	ProvisionGroupRequest
@@ -42,6 +43,26 @@ It has these top-level messages:
 	WithdrawInvitationResponse
 	FullName
 	PostalAddress
+	RegisterUserRequest
+	RegisterUserResponse
+	AuthenticateUserRequest
+	AuthenticateUserResponse
+	ChangeContactInformationRequest
+	ChangeContactInformationResponse
+	ChangeEmailAddressRequest
+	ChangeEmailAddressResponse
+	ChangePrimaryTelephoneRequest
+	ChangePrimaryTelephoneResponse
+	ChangeSecondaryTelephoneRequest
+	ChangeSecondaryTelephoneResponse
+	ChangePostalAddressRequest
+	ChangePostalAddressResponse
+	ChangeUserPasswordRequest
+	ChangeUserPasswordResponse
+	ChangeUserPersonalNameRequest
+	ChangeUserPersonalNameResponse
+	DefineUserEnablementRequest
+	DefineUserEnablementResponse
 */
 package grpc
 
