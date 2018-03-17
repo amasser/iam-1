@@ -1,40 +1,102 @@
-PROJECT = iam
-VET_REPORT = vet.report
-TEST_REPORT = tests.xml
-GOARCH = amd64
+.PHONY: all tags clean test build install generate image release
 
-VERSION?=1.0.0
-COMMIT=$(shell git rev-parse HEAD)
-BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+REGISTRY_REPO = 940322424406.dkr.ecr.eu-central-1.amazonaws.com/iam
 
-GITHUB_USERNAME=maurofran
-BUILD_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/${PROJECT}
-CURRENT_DIR=$(shell pwd)
-TARGET_DIR=target
+OK_COLOR=\033[32;01m
+NO_COLOR=\033[0m
+ERROR_COLOR=\033[31;01m
+WARN_COLOR=\033[33;01m
 
-LD_FLAGS = -ldflags "-X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.Branch=${BRANCH}"
+# Build flags
+BUILD_DATE = $(shell date -u)
+BUILD_HASH = $(shell git rev-parse --short HEAD)
+BUILD_NUMBER ?= $(BUILD_NUMBER:)
 
-# Build all the project
-all: clean protoc linux darwin windows
+# If we don't set the build number if defaults to dev
+ifeq ($(BUILD_NUMBER), )
+	BUILD_NUMBER := dev
+endif
 
-protoc:
-	mkdir -p internal/app/ports/adapter/grpc; \
-	rm internal/app/ports/adapter/grpc/*.pb.go; \
-	protoc -I/usr/local/include -Iapi -I${GOPATH}/src --go_out=plugins=grpc:internal/app/ports/adapter/grpc api/*.proto
+NOW := $(shell date -u '+%Y%m%d%I%M%S')
 
-linux: protoc
-	GOOS=linux GOARCH=${GOARCH} go build ${LD_FLAGS} -o ${TARGET_DIR}/iamd-linux-${GOARCH} cmd/iamd/main.go; \
-	GOOS=linux GOARCH=${GOARCH} go build ${LD_FLAGS} -o ${TARGET_DIR}/iam-linux-${GOARCH} cmd/iam/main.go
+DOCKER := docker
+GO := go
+GO_ENV := $(shell $(GO) env GOOS GOARCH)
+GOOS ?= $(word 1,$(GO_ENV))
+GOARCH ?= $(word 2,$(GO_ENV))
+GOFLAGS ?= $(GOFLAGS:)
+ROOT_DIR := $(realpath .)
 
-darwin: protoc
-	GOOS=darwin GOARCH=${GOARCH} go build ${LD_FLAGS} -o ${TARGET_DIR}/iamd-darwin-${GOARCH} cmd/iamd/main.go; \
-	GOOS=darwin GOARCH=${GOARCH} go build ${LD_FLAGS} -o ${TARGET_DIR}/iam-darwin-${GOARCH} cmd/iam/main.go
+# GOOS/GOARCH of the build host, used to determine whether
+# we're cross compiling or not
+BUILDER_GOOS_GOARCH="$(GOOS)_$(GOARCH)"
 
-windows: protoc
-	GOOS=windows GOARCH=${GOARCH} go build ${LD_FLAGS} -o ${TARGET_DIR}/iamd-windows-${GOARCH}.exe cmd/iamd/main.go; \
-	GOOS=windows GOARCH=${GOARCH} go build ${LD_FLAGS} -o ${TARGET_DIR}/iam-windows-${GOARCH}.exe cmd/iam/main.go
+PKGS = $(shell $(GO) list ./cmd/... ./internal/... ./pkg/... | grep -v /vendor/)
+
+TAGS ?= "netgo"
+BUILD_ENV = 
+ENVFLAGS = CGOENABLED=1 $(BUILD_ENV)
+
+ifneq ($(GOOS), darwin)
+	EXTLDFLAGS = -extldflags "-lm -lstdc++ -static"
+else
+	EXTLDFLAGS = 
+endif
+
+GO_LINKER_FLAGS ?= --ldflags '$(EXTLDFLAGS) -s -w \
+	-X "github.com/maurofran/iam/pkg/version.BuildNumber=$(BUILD_NUMBER)" \
+	-X "github.com/maurofran/iam/pkg/version.BuildDate=$(BUILD_DATE)" \
+	-X "github.com/maurofran/iam/pkg/version.BuildHash=$(BUILD_HASH)"'
+
+BIN_NAME := iamd
+
+
+all: build
+
+generate:
+	@echo "$(OK_COLOR)==> Generating files via go generate...$(NO_COLOR)"
+	@$(GO) generate $(GOFLAGS) $(PKGS)
+
+build: generate
+	@echo "$(OK_COLOR)==> Building binary ($(GOOS)/$(GOARCH))...$(NO_COLOR)"
+	@echo @$(ENVFLAGS) $(GO) build -a -installsuffix cgo -tags $(TAGS) $(GOFLAGS) $(GO_LINKER_FLAGS) -o bin/$(GOOS)_$(GOARCH)/$(BIN_NAME) cmd/iamd/main.go
+	@$(ENVFLAGS) $(GO) build -a -installsuffix cgo -tags $(TAGS) $(GOFLAGS) $(GO_LINKER_FLAGS) -o bin/$(GOOS)_$(GOARCH)/$(BIN_NAME) ./cmd/iamd/main.go
+
+test:
+	@echo "$(OK_COLOR)==> Running tests...$(NO_COLOR)"
+	@$(GO) test $(GOFLAGS) $(PKGS)
+
+install: build
+	@echo "$(OK_COLOR)==> Installing packages into GOPATH...$(NO_COLOR)"
+	@$(GO) install $(GOFLAGS) $(PKGS)
+
+format:
+	@echo "$(OK_COLOR)==> Formatting Code...$(NO_COLOR)"
+	@$(GO) fmt $(GOFLAGS) $(PKGS)
+
+vet:
+	@echo "$(OK_COLOR)==> Running vet...$(NO_COLOR)"
+	@$(GO) vet $(GOFLAGS) $(PKGS)
+
+linter:
+	@echo "$(OK_COLOR)==> Running linter...$(NO_COLOR)"
+	@$(GO) lint $(GOFLAGS) $(PKGS)
+
+setup:
+	@echo "$(OK_COLOR)==> Installing required components...$(NO_COLOR)"
+	@$(GO) get -u $(GOFLAGS) github.com/campoy/jsonenums
 
 clean:
-	-rm -f ${TARGET_DIR}
+	@echo "$(OK_COLOR)==> Cleaning...$(NO_COLOR)"
+	@$(GO) clean -i ./...
 
-.PHONY: linux darwin windows protoc clean	
+run:
+	@bin/$(GOOS)_$(GOARCH)/$(BIN_NAME) $(args)
+
+image:
+	@echo "$(OK_COLOR)==> Creating Docker Image...$(NO_COLOR)"
+	@$(DOCKER) build . -f build/package/Dockerfile -t $(REGISTRY_REPO)
+
+release:
+	@echo "$(OK_COLOR)==> Pushing Docker Image to $(REGISTRY_REPO)...$(NO_COLOR)"
+	@$(DOCKER) push $(REGISTRY_REPO)
