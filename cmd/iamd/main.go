@@ -22,6 +22,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
+
+	"github.com/spf13/viper"
 )
 
 // Injected variables
@@ -49,6 +51,23 @@ var (
 )
 
 func main() {
+	viper.SetDefault("DatabaseUrl", "mongodb://localhost:27017/iam_db")
+	viper.SetDefault("GrpcServerPort", 3000)
+	viper.SetDefault("Environment", "dev")
+
+	viper.SetConfigName("config")
+	viper.AddConfigPath("/etc/iamd")
+	viper.AddConfigPath("$HOME/.iamd")
+	viper.AddConfigPath(".")
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Fatal(err)
+		}
+	}
+
+	viper.SetEnvPrefix("iamd")
+	viper.AutomaticEnv()
+
 	app := cli.NewApp()
 	app.Name = "iamd"
 	app.Usage = "Identity and Access Manager Daemon"

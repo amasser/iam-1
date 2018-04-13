@@ -31,7 +31,8 @@ ROOT_DIR := $(realpath .)
 # we're cross compiling or not
 BUILDER_GOOS_GOARCH="$(GOOS)_$(GOARCH)"
 
-PKGS = $(shell $(GO) list ./cmd/... ./internal/... ./pkg/... | grep -v /vendor/)
+# Add packages ./xxx/...
+PKGS = $(shell $(GO) list ./cmd/... | grep -v /vendor/)
 
 TAGS ?= "netgo"
 BUILD_ENV = 
@@ -43,13 +44,12 @@ else
 	EXTLDFLAGS = 
 endif
 
-GO_LINKER_FLAGS ?= --ldflags '$(EXTLDFLAGS) -s -w \
+GO_LINKER_FLAGS ?= --ldflags '$(EXTLDFLAGS) -s -w #\
 	-X "github.com/maurofran/iam/pkg/version.BuildNumber=$(BUILD_NUMBER)" \
 	-X "github.com/maurofran/iam/pkg/version.BuildDate=$(BUILD_DATE)" \
 	-X "github.com/maurofran/iam/pkg/version.BuildHash=$(BUILD_HASH)"'
 
 BIN_NAME := iamd
-
 
 all: build
 
@@ -84,7 +84,8 @@ linter:
 
 setup:
 	@echo "$(OK_COLOR)==> Installing required components...$(NO_COLOR)"
-	@$(GO) get -u $(GOFLAGS) github.com/campoy/jsonenums
+	@$(GO) get -u $(GOFLAGS) github.com/golang/dep/cmd/dep
+	@dep ensure
 
 clean:
 	@echo "$(OK_COLOR)==> Cleaning...$(NO_COLOR)"
@@ -95,7 +96,7 @@ run:
 
 image:
 	@echo "$(OK_COLOR)==> Creating Docker Image...$(NO_COLOR)"
-	@$(DOCKER) build . -f build/package/Dockerfile -t $(REGISTRY_REPO)
+	@$(DOCKER) build . -t $(REGISTRY_REPO)
 
 release:
 	@echo "$(OK_COLOR)==> Pushing Docker Image to $(REGISTRY_REPO)...$(NO_COLOR)"
