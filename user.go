@@ -4,10 +4,11 @@ import (
 	"time"
 )
 
+// Users is the type for a collection of users.
+type Users []*User
+
 // User is the aggregate root representing a user.
 type User struct {
-	ID         int64
-	Version    int32
 	TenantID   TenantID
 	Username   string
 	Password   string
