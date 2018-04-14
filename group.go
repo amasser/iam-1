@@ -8,6 +8,18 @@ type Group struct {
 	Members     GroupMembers
 }
 
+// Groups is a collection of group.
+type Groups []*Group
+
+// GroupRepository is the interface for group management repository.
+type GroupRepository interface {
+	Add(*Group) error
+	Update(*Group) error
+	Remove(*Group) error
+	GroupNamed(TenantID, string) (*Group, error)
+	AllGroups(TenantID) (Groups, error)
+}
+
 // GroupMemberType is an enum type for group member.
 type GroupMemberType int
 

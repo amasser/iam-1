@@ -16,6 +16,15 @@ type Tenant struct {
 	Invitations Invitations
 }
 
+// TenantRepository is the interface for tenants.
+type TenantRepository interface {
+	Add(*Tenant) error
+	Update(*Tenant) error
+	Remove(*Tenant) error
+	TenantNamed(string) (*Tenant, error)
+	TenantOfID(TenantID) (*Tenant, error)
+}
+
 // Invitations is the collection of invitation entities.
 type Invitations []*Invitation
 

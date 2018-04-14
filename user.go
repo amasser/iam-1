@@ -16,6 +16,16 @@ type User struct {
 	Person     *Person
 }
 
+// UserRepository is the interace for user repository.
+type UserRepository interface {
+	Add(*User) error
+	Update(*User) error
+	Remove(*User) error
+	UserWithUsername(TenantID, string) (*User, error)
+	UserWithCredentials(TenantID, string, string) (*User, error)
+	AllSimilarlyNamedUsers(TenantID, string, string) (Users, error)
+}
+
 // Enablement is the value object for a user enablement status.
 type Enablement struct {
 	Enabled   bool
