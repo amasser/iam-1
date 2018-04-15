@@ -9,11 +9,11 @@ type TenantID string
 
 // Tenant is the aggregate root object for the tenant.
 type Tenant struct {
-	ID          TenantID
-	Name        string
-	Description string
-	Active      bool
-	Invitations Invitations
+	ID          TenantID    `bson:"tenantId"`
+	Name        string      `bson:"name"`
+	Description string      `bson:"description,omitempty"`
+	Active      bool        `bson:"active"`
+	Invitations Invitations `bson:"invitations"`
 }
 
 // TenantRepository is the interface for tenants.
@@ -30,8 +30,8 @@ type Invitations []*Invitation
 
 // Invitation is the entity for an invitation.
 type Invitation struct {
-	ID          string
-	Description string
-	StartingOn  time.Time
-	Until       time.Time
+	ID          string    `bson:"invitationId"`
+	Description string    `bson:"description"`
+	StartingOn  time.Time `bson:"startingOn"`
+	Until       time.Time `bson:"until"`
 }

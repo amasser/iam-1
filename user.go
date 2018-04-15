@@ -9,11 +9,11 @@ type Users []*User
 
 // User is the aggregate root representing a user.
 type User struct {
-	TenantID   TenantID
-	Username   string
-	Password   string
-	Enablement Enablement
-	Person     *Person
+	TenantID   TenantID   `bson:"tenantId"`
+	Username   string     `bson:"username"`
+	Password   string     `bson:"password"`
+	Enablement Enablement `bson:"enablement"`
+	Person     *Person    `bson:"person"`
 }
 
 // UserRepository is the interace for user repository.
@@ -28,7 +28,7 @@ type UserRepository interface {
 
 // Enablement is the value object for a user enablement status.
 type Enablement struct {
-	Enabled   bool
-	StartDate time.Time
-	EndDate   time.Time
+	Enabled   bool      `bson:"enabled"`
+	StartDate time.Time `bson:"startDate"`
+	EndDate   time.Time `bson:"endDate"`
 }

@@ -2,11 +2,11 @@ package iam
 
 // Role is the aggregate root object managing roles.
 type Role struct {
-	TenantID        TenantID
-	Name            string
-	Description     string
-	SupportsNesting bool
-	Group           *Group
+	TenantID        TenantID `bson:"tenantId"`
+	Name            string   `bson:"name"`
+	Description     string   `bson:"description,omitempty"`
+	SupportsNesting bool     `bson:"supportsNesting"`
+	Group           *Group   `bson:"group"`
 }
 
 // Roles is the collection of roles

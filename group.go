@@ -2,10 +2,10 @@ package iam
 
 // Group is the aggregate root object representing a group.
 type Group struct {
-	TenantID    TenantID
-	Name        string
-	Description string
-	Members     GroupMembers
+	TenantID    TenantID     `bson:"tenantId"`
+	Name        string       `bson:"name"`
+	Description string       `bson:"description,omitempty"`
+	Members     GroupMembers `bson:"members"`
 }
 
 // Groups is a collection of group.
@@ -25,8 +25,8 @@ type GroupMemberType int
 
 // GroupMember is the value object representing a group member.
 type GroupMember struct {
-	Type GroupMemberType
-	Name string
+	Type GroupMemberType `bson:"type"`
+	Name string          `bson:"name"`
 }
 
 // GroupMembers is the collection of group members
