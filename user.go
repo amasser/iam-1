@@ -22,7 +22,6 @@ type UserRepository interface {
 	Update(*User) error
 	Remove(*User) error
 	UserWithUsername(TenantID, string) (*User, error)
-	UserWithCredentials(TenantID, string, string) (*User, error)
 	AllSimilarlyNamedUsers(TenantID, string, string) (Users, error)
 }
 
