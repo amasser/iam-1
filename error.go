@@ -43,7 +43,7 @@ func (e *Error) Error() string {
 // ErrorCode extract the error code of supplied error.
 func ErrorCode(err error) string {
 	if err == nil {
-		return nil
+		return ""
 	}
 	if e, ok := err.(*Error); ok && e.Code != "" {
 		return e.Code
@@ -56,7 +56,7 @@ func ErrorCode(err error) string {
 // ErrorMessage extract the error message of supplied error.
 func ErrorMessage(err error) string {
 	if err == nil {
-		return nil
+		return ""
 	}
 	if e, ok := err.(*Error); ok && e.Message != "" {
 		return e.Message
